@@ -1,0 +1,31 @@
+game:
+    name: 'MCTSTicTacToe'
+    first_player: random
+policies:
+    X:
+        name: 'DeterministicOraclePolicy'
+        oracle:
+            name: OpenSpielMLP
+            capacity:
+                input_size: 18
+                output_size: 9
+                nn_depth: 2
+                nn_width: 2
+            file_path: tic_tac_toe_alpha_zero
+    O:
+        name: 'StochasticOraclePolicy'
+        oracle:
+            name: OpenSpielMLP
+            capacity:
+                input_size: 18
+                output_size: 9
+                nn_depth: 2
+                nn_width: 2
+            file_path: tic_tac_toe_alpha_zero
+evaluation:
+    observed_players: ['O']
+    number_of_tests: 100
+    buckets:
+        - [-inf, 0.25]
+        - [0.25, 0.75]
+        - [0.75, +inf]

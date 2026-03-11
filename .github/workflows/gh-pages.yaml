@@ -1,0 +1,35 @@
+name: Build and deploy documentation page
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Python setup
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install documentation dependencies
+      run: |
+        pip install -r .github/workflows/doc_requirements.txt
+    - name: Build HTML
+      run: |
+        make doc
+    - name: Copy readme
+      run: cp README.rst doc/build/html/
+    - name: Copy license
+      run: cp LICENSE.txt doc/build/html/
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: doc/build/html
+        publish_branch: gh-pages

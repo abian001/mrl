@@ -1,0 +1,12 @@
+game:
+    name: 'Coordination'
+    module: 'coordination'
+    number_of_tests: 3
+policies:
+    O:
+        name: ManualPolicy
+    X:
+        name: RandomPolicy
+stdin_policy:
+    name: CoordinationStdin
+    module: coordination

@@ -1,0 +1,8 @@
+game:
+    name: 'RockPaperScissors'
+    first_player: 'X'
+policies:
+    X:
+        name: 'ManualPolicy'
+    O:
+        name: 'RandomPolicy'

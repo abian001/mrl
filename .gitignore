@@ -1,0 +1,10 @@
+*.pyc
+*.tmp
+*.swp
+*.egg-info
+*.out
+*.png
+*.DS_Store
+build/
+doc/build/
+production_space/

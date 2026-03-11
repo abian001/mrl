@@ -1,0 +1,22 @@
+services:
+    mrl_dev:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: mrl_development_image
+        volumes:
+            - .:/mrl
+            - /tmp/.X11-unix:/tmp/.X11-unix
+        environment:
+            DISPLAY: host.docker.internal:0
+    mrl_prod:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: mrl_production_image
+        volumes:
+            - ./production_space:/mrl
+            - /tmp/.X11-unix:/tmp/.X11-unix
+        environment:
+            DISPLAY: host.docker.internal:0
+            PYTHONPATH: /mrl/examples

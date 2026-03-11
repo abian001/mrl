@@ -1,0 +1,18 @@
+game:
+    name: 'Centipede'
+    module: 'centipede'
+    number_of_steps: 10
+policies:
+    O:
+        name: RandomPolicy
+    X:
+        name: RandomPolicy
+evaluation:
+    observed_players: ['O']
+    number_of_tests: 100
+    buckets:
+        - [-inf, 0.20]
+        - [0.20, 0.40]
+        - [0.40, 0.60]
+        - [0.60, 0.80]
+        - [0.80, +inf]

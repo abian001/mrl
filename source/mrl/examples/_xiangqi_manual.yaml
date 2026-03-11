@@ -1,0 +1,8 @@
+game:
+    name: 'Xiangqi'
+    first_player: 'Red'
+policies:
+    Black:
+        name: 'RandomPolicy'
+    Red:
+        name: 'ManualPolicy'

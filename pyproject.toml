@@ -1,0 +1,62 @@
+[project]
+requires-python = ">=3.11.5"
+version = "0.0.0"
+name = "mrl"
+dependencies = []
+
+
+[project.scripts]
+run_game = 'mrl.test_utils.game_runner:main'
+run_alpha_zero = 'mrl.test_utils.alpha_zero:main'
+get_examples = 'mrl.test_utils.get_examples:main'
+
+
+[tool.setuptools]
+package-dir = {"" = "source"}
+
+
+[tool.setuptools.packages.find]
+where = ["source"]
+exclude = ["*_test.py"]
+
+
+[tool.setuptools.package-data]
+mrl = ["examples/*"]
+
+
+[tool.pylint.main]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-boolean-expressions",
+    "typevar-name-incorrect-variance",
+    "superfluous-parens",
+    "too-many-return-statements",
+    "invalid-name",
+    "duplicate-code",
+    "too-many-ancestors",
+    "no-self-argument",
+    "redefined-outer-name"
+]
+
+
+[tool.mypy]
+disable_error_code = [
+]
+
+
+[[tool.mypy.overrides]]
+module = ['h5py.*']
+ignore_missing_imports = true
+
+
+[tool.pyright]
+reportAttributeAccessIssue = 'none'
+
+
+[tool.pytest.ini_options]
+python_classes = '*Test'
+markers = ['quick', 'slow', 'manual', 'performance', 'gui', 'debug']

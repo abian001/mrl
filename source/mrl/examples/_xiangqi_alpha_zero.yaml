@@ -1,0 +1,46 @@
+game:
+    name: MCTSXiangqi
+    first_player: random
+type: InMemory
+oracle:
+    name: OpenSpielConv
+    capacity:
+        input_shape: [14, 10, 9]
+        output_size: 127
+        nn_depth: 2
+        nn_width: 2
+    file_path: xiangqi_alpha_zero
+collector:
+    number_of_processes: 1
+    mcts:
+        number_of_simulations: 1
+        pucb_constant: 1.0
+        discount_factor: 1.0
+    max_buffer_length: 100
+    number_of_episodes: 1
+    temperature_schedule:
+        - [0, 1.0]
+trainer:
+    batch_size: 32
+    max_training_epochs: 1
+    early_stop_loss: 1e-3
+    learning_rate: 1e-3
+    loading_workers: 1            
+report_generator:
+    oracle_led_players: ['Red']
+    number_of_tests: 10
+    buckets:
+        - [-inf, 0.25]
+        - [0.25, 0.75]
+        - [0.75, +inf]
+number_of_epochs: 1
+evaluation_episodes: 10
+max_old_models: 5
+hdf5_path_prefix: xiangqi_data
+server_hostname: 127.0.0.1
+server_port: 8888
+workspace_path: test_workspace
+manual_play:
+    manual_player: 'Red'
+    autonomous_policy:
+        name: StochasticOraclePolicy

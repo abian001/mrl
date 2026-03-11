@@ -1,0 +1,13 @@
+game:
+    name: 'MCTSStraightFour'
+    first_player: 'X'
+policies:
+    X:
+        name: 'ManualPolicy'
+    O:
+        name: 'NonDeterministicMCTSPolicy'
+        oracle:
+            name: 'RandomRollout'
+            number_of_rollouts: 5
+        mcts:
+            number_of_simulations: 25

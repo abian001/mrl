@@ -1,0 +1,13 @@
+game:
+    name: 'MCTSXiangqi'
+    first_player: 'Red'
+policies:
+    Black:
+        name: 'MemoryfullMCTSPolicy'
+        oracle:
+            name: 'RandomRollout'
+            number_of_rollouts: 1
+        mcts:
+            number_of_simulations: 1
+    Red:
+        name: 'ManualPolicy'

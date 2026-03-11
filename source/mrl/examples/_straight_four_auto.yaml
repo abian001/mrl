@@ -1,0 +1,15 @@
+game:
+    name: 'StraightFour'
+    first_player: 'X'
+policies:
+    X:
+        name: 'RandomPolicy'
+    O:
+        name: 'RandomPolicy'
+evaluation:
+    observed_players: ['O']
+    number_of_tests: 100
+    buckets:
+        - [-inf, 0.25]
+        - [0.25, 0.75]
+        - [0.75, +inf]

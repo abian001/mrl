@@ -1,0 +1,19 @@
+game:
+    name: 'TicTacToe'
+    first_player: 'random'
+policies:
+    X:
+        name: 'OpportunityPolicy'
+        module: 'opportunity_policy'
+        check_winning: True
+    O:
+        name: 'OpportunityPolicy'
+        module: 'opportunity_policy'
+        check_losing: True
+evaluation:
+    observed_players: ['O']
+    number_of_tests: 100
+    buckets:
+        - [-inf, 0.25]
+        - [0.25, 0.75]
+        - [0.75, +inf]
