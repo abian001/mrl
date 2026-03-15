@@ -5,4 +5,5 @@
 This is a library for solving games using machine learning and
 reinforcement learning approaches.
 
-Please see the documentation page for further details.
+Please see the `documentation <https://abian001.github.io/mrl/>`_
+page for further details.
