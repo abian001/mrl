@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Game runner" href="game_runner.html" />
+    <link rel="prev" title="Policy" href="policies.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Game</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tictactoe">TicTacToe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#straight-four">Straight Four</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#xiangqi">Xiangqi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rock-paper-scissors">Rock Paper Scissors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Game</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/games.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="game">
+<h1>Game<a class="headerlink" href="#game" title="Link to this heading"></a></h1>
+<p>A game defines the rules and structure of an interactive environment in
+which one or more players make decisions over time.</p>
+<p>Conceptually, a game has two main responsibilities:</p>
+<ul class="simple">
+<li><p><strong>State generation</strong>: it acts as a factory for creating the initial
+state of a new game.</p></li>
+<li><p><strong>State transitions</strong>: it defines how the game evolves when players
+take actions, producing new states according to the game rules.</p></li>
+</ul>
+<p>A game also defines <strong>perspectives</strong>. A perspective represents how a
+specific player observes the game and which actions are available to
+that player. This abstraction allows the framework to support:</p>
+<ul class="simple">
+<li><p>perfect-information games (all players observe the full state),</p></li>
+<li><p>partial-information games (players observe only part of the state),</p></li>
+<li><p>different observation encodings for different algorithms.</p></li>
+</ul>
+<p>A game must implement the following protocols:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Game</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateCo</span><span class="p">,</span> <span class="n">Player</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_initial_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateCo</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the initial state of the game&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_players</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Player</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the player identifiers.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_perspectives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Player</span><span class="p">,</span> <span class="n">Perspective</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the player perspectives.&quot;&quot;&quot;</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Perspective</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">,</span> <span class="n">ActionSpaceCo</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObservationCo</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns an observation made by a player under the perspective&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ActionSpaceCo</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the space of actions the player is allowed to make in the state&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>A game compatible with the AlphaZero algorithm must also implement the
+following protocols:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Restorable</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateCo</span><span class="p">,</span> <span class="n">ObservationContra</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">ObservationContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateCo</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a state that is compatible with the given observation&quot;&quot;&quot;</span>
+
+
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TurnBased</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">State</span><span class="p">,</span> <span class="n">ActionContra</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">ActionContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">State</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the game state according to the action of the active player&quot;&quot;&quot;</span>
+
+
+ <span class="k">class</span><span class="w"> </span><span class="nc">PayoffObservable</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">Player</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]):</span>
+
+     <span class="nd">@abstractmethod</span>
+     <span class="k">def</span><span class="w"> </span><span class="nf">get_perspectives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Player</span><span class="p">,</span> <span class="n">PayoffPerspective</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]]:</span>
+<span class="w">         </span><span class="sd">&quot;&quot;&quot;Return the player payoff perspectives.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>In addition the perspective for an MCTS game must implemet the following
+protocols:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PayoffPerspective</span><span class="p">(</span><span class="n">Perspective</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_payoff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns observed payoff in the given state&quot;&quot;&quot;</span>
+
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HasActionSpaceDimension</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_space_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of distinct actions allowed in the action space.&quot;&quot;&quot;</span>
+
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MCTSPerspective</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ActionCo</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the essential part of the observation, used by the oracle</span>
+<span class="sd">           to compute value and probabilities.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ActionCo</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the observed action space as a tuple of actions&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Note: The signature of <code class="docutils literal notranslate"><span class="pre">get_action_space</span></code> in <code class="docutils literal notranslate"><span class="pre">MCTSPerspective</span></code>
+requires the ActionSpace to be a tuple of Action objects, unlike the
+more generic <code class="docutils literal notranslate"><span class="pre">get_action_space</span></code> signature defined in <code class="docutils literal notranslate"><span class="pre">Perspective</span></code>.</p>
+<p>Below there is a list of games which are built-in the mrl library.</p>
+<section id="tictactoe">
+<h2>TicTacToe<a class="headerlink" href="#tictactoe" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TicTacToe</span>
+<span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">X</span>
+
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCTSTicTacToe</span>
+<span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random</span>
+</pre></div>
+</div>
+<p>This is a classic 3×3 grid game in which two players alternately place
+their symbol (<code class="docutils literal notranslate"><span class="pre">X</span></code> or <code class="docutils literal notranslate"><span class="pre">O</span></code>) on the board. The objective is to create a
+line of three identical symbols horizontally, vertically, or diagonally.</p>
+<p>Actions are represented by integers from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">8</span></code> corresponding to
+the nine cells of the grid.</p>
+<p>Two implementations are provided:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TicTacToe</span></code>: a standard implementation suitable for manual play and
+basic policy evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MCTSTicTacToe</span></code>: an implementation designed for use with MCTS and
+AlphaZero training.</p></li>
+</ul>
+<p>In the MCTS variant, the board state is encoded as a vector of 18
+elements by stacking two binary representations: one for the current
+player’s pieces and one for the opponent’s pieces.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">first_player</span></code> parameter determines who moves first. It can be
+<code class="docutils literal notranslate"><span class="pre">X</span></code>, <code class="docutils literal notranslate"><span class="pre">O</span></code>, or <code class="docutils literal notranslate"><span class="pre">random</span></code>.</p>
+<p>The game includes built-in terminal and Tk GUI interfaces for manual
+play.</p>
+</section>
+<section id="straight-four">
+<h2>Straight Four<a class="headerlink" href="#straight-four" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StraightFour</span>
+<span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">O</span>
+
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCTSStraightFour</span>
+<span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random</span>
+</pre></div>
+</div>
+<p>Two players attempt to create a line of four of their symbols on a 7×7
+board by dropping tokens into columns.</p>
+<p>Actions are represented by integers from <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">6</span></code> corresponding to
+the seven columns of the board.</p>
+<p>Two implementations are provided:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">StraightFour</span></code>: a standard implementation suitable for manual play
+and policy evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MCTSStraightFour</span></code>: a variant adapted for MCTS and AlphaZero
+training.</p></li>
+</ul>
+<p>In the MCTS variant, the board is encoded as two <code class="docutils literal notranslate"><span class="pre">7×7</span></code> matrices,
+representing the positions of each player’s tokens.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">first_player</span></code> parameter determines which player moves first
+(<code class="docutils literal notranslate"><span class="pre">X</span></code>, <code class="docutils literal notranslate"><span class="pre">O</span></code>, or <code class="docutils literal notranslate"><span class="pre">random</span></code>).</p>
+<p>Terminal and Tk GUI interfaces are provided for manual play.</p>
+</section>
+<section id="xiangqi">
+<h2>Xiangqi<a class="headerlink" href="#xiangqi" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Xiangqi</span>
+<span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Red</span>
+<span class="nt">step_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">200</span>
+
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCTSXiangqi</span>
+<span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Black</span>
+</pre></div>
+</div>
+<p>This is an implementation of <strong>Xiangqi</strong>, a two-player strategy game
+played on a 9×10 board. Rules can be found at <a class="reference external" href="https://www.xiangqi.com/how-to-play">xiangqi.com</a>. Note that repetition rules are
+not enforced as in the standard ruleset. In this implementation, the
+game always ends in a draw once the step_limit is reached (200 by
+default).</p>
+<p>Actions are represented as tuples:</p>
+<p><code class="docutils literal notranslate"><span class="pre">(x_origin,</span> <span class="pre">y_origin,</span> <span class="pre">x_destination,</span> <span class="pre">y_destination)</span></code></p>
+<p>which specify the piece to move and its destination square.</p>
+<p>Two implementations are available:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Xiangqi</span></code>: a standard version for manual play and evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MCTSXiangqi</span></code>: a variant designed for MCTS and AlphaZero training.</p></li>
+</ul>
+<p>In the MCTS version, actions are encoded as integers in the range
+<code class="docutils literal notranslate"><span class="pre">0</span></code>–<code class="docutils literal notranslate"><span class="pre">127</span></code>. The board state is represented as a tensor of shape
+<code class="docutils literal notranslate"><span class="pre">14</span> <span class="pre">×</span> <span class="pre">10</span> <span class="pre">×</span> <span class="pre">9</span></code>, where each channel corresponds to the presence of a
+specific piece type.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">first_player</span></code> parameter determines whether <code class="docutils literal notranslate"><span class="pre">Red</span></code> or <code class="docutils literal notranslate"><span class="pre">Black</span></code>
+moves first, although <code class="docutils literal notranslate"><span class="pre">Red</span></code> is always the first player in the official
+rules.</p>
+<p>Terminal and GUI interfaces are provided for manual play.</p>
+</section>
+<section id="rock-paper-scissors">
+<h2>Rock Paper Scissors<a class="headerlink" href="#rock-paper-scissors" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RockPaperScissors</span>
+<span class="nt">number_of_rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+</pre></div>
+</div>
+<p>This is an example <strong>discrete-time simultaneous game</strong>.</p>
+<p>In each round, both players simultaneously choose one of three actions:
+<code class="docutils literal notranslate"><span class="pre">rock</span></code>, <code class="docutils literal notranslate"><span class="pre">paper</span></code>, or <code class="docutils literal notranslate"><span class="pre">scissors</span></code>. The winner of the round is
+determined by the standard rules:</p>
+<ul class="simple">
+<li><p>rock beats scissors</p></li>
+<li><p>scissors beats paper</p></li>
+<li><p>paper beats rock</p></li>
+</ul>
+<p>The game is repeated for <code class="docutils literal notranslate"><span class="pre">number_of_rounds</span></code> rounds. The overall winner
+is the player who wins the most rounds.</p>
+<p>Actions are represented by their symbolic names (<code class="docutils literal notranslate"><span class="pre">rock</span></code>, <code class="docutils literal notranslate"><span class="pre">paper</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scissors</span></code>).</p>
+<p>This example demonstrates how the framework can represent games where
+all players act simultaneously rather than sequentially.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="policies.html" class="btn btn-neutral float-left" title="Policy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="game_runner.html" class="btn btn-neutral float-right" title="Game runner" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

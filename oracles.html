@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oracle &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Policy" href="policies.html" />
+    <link rel="prev" title="Architecture Overview" href="architecture.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Oracle</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#randomrollout">RandomRollout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openspielmlp">OpenSpielMLP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openspielconv">OpenSpielConv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openspielresnet">OpenSpielResnet</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Oracle</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/oracles.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="oracle">
+<h1>Oracle<a class="headerlink" href="#oracle" title="Link to this heading"></a></h1>
+<p>An oracle is an object that estimates the expected payoff for a player
+in a given state and determines the optimal strategy for that state. A
+strategy is represented as a probability distribution over the actions
+available to the player.</p>
+<p>An oracle must implement the following protocol:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Oracle</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">Observation</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">Observation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Payoff</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the expected payoff in the given observation&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_probabilities</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">Observation</span><span class="p">,</span> <span class="n">legal_mask</span><span class="p">:</span> <span class="n">LegalMask</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Probabilities</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the probabilities for each action.</span>
+<span class="sd">        The legal mask defines which actions are allowed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Below there is a list of oracles which are built-in the mrl library.</p>
+<section id="randomrollout">
+<h2>RandomRollout<a class="headerlink" href="#randomrollout" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomRollout</span>
+<span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
+</pre></div>
+</div>
+<p>This oracle estimates the expected payoff by performing
+<code class="docutils literal notranslate"><span class="pre">number_of_rollouts</span></code> simulations using random actions.</p>
+<p>The expected payoff is computed as the average payoff across all
+simulations. The returned action probability distribution is uniform
+over the legal actions.</p>
+</section>
+<section id="openspielmlp">
+<h2>OpenSpielMLP<a class="headerlink" href="#openspielmlp" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielMLP</span>
+<span class="nt">capacity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">input_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18</span>
+<span class="w">    </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9</span>
+<span class="w">    </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>This oracle is implemented as a multi-layer perceptron (MLP). It takes
+as input the state of the game encoded as an <code class="docutils literal notranslate"><span class="pre">n</span></code>-dimensional vector
+and produces:</p>
+<ul class="simple">
+<li><p>a probability distribution over the available actions, and</p></li>
+<li><p>an estimate of the expected payoff.</p></li>
+</ul>
+<p>The neural network follows the <a class="reference external" href="https://github.com/google-deepmind/open_spiel">OpenSpiel</a> architecture. It
+contains <code class="docutils literal notranslate"><span class="pre">nn_depth</span></code> hidden layers in addition to the input and output
+layers. Each hidden layer has <code class="docutils literal notranslate"><span class="pre">nn_width</span></code> neurons, and each layer is
+fully connected to the next.</p>
+<p>The output consists of two heads:</p>
+<ul class="simple">
+<li><p>a <strong>policy head</strong>, which produces logits for the action probability
+distribution;</p></li>
+<li><p>a <strong>value head</strong>, which estimates the expected payoff.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">input_size</span></code> defines the dimension of the input vector, while
+<code class="docutils literal notranslate"><span class="pre">output_size</span></code> defines the number of possible actions and therefore the
+dimension of the probability distribution.</p>
+</section>
+<section id="openspielconv">
+<h2>OpenSpielConv<a class="headerlink" href="#openspielconv" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielConv</span>
+<span class="nt">capacity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">input_shape</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span>
+<span class="w">    </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>This oracle is implemented as a convolutional neural network. It takes
+as input the state of the game encoded as a array with shape <code class="docutils literal notranslate"><span class="pre">(channels</span>
+<span class="pre">×</span> <span class="pre">height</span> <span class="pre">×</span> <span class="pre">width)</span></code>. Reshaping is performed automatically, so a
+perspective may return an array of any shape, provided that the total
+number of elements equals channels × height × width.</p>
+<p>The network produces both:</p>
+<ul class="simple">
+<li><p>a probability distribution over the available actions, and</p></li>
+<li><p>an estimate of the expected payoff.</p></li>
+</ul>
+<p>The architecture follows the <a class="reference external" href="https://github.com/google-deepmind/open_spiel">OpenSpiel</a> design. It includes
+<code class="docutils literal notranslate"><span class="pre">nn_depth</span></code> convolutional layers in addition to the input and output
+layers. Each convolutional layer produces <code class="docutils literal notranslate"><span class="pre">nn_width</span></code> output channels.</p>
+<p>Batch normalization and ReLU activation functions are applied after each
+convolutional layer.</p>
+</section>
+<section id="openspielresnet">
+<h2>OpenSpielResnet<a class="headerlink" href="#openspielresnet" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielResnet</span>
+<span class="nt">capacity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">input_shape</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span>
+<span class="w">    </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</pre></div>
+</div>
+<p>This oracle is implemented as a convolutional neural network with
+residual connections.</p>
+<p>The network takes the game state encoded as a tensor with shape
+<code class="docutils literal notranslate"><span class="pre">(channels</span> <span class="pre">×</span> <span class="pre">height</span> <span class="pre">×</span> <span class="pre">width)</span></code> and produces both a probability
+distribution over the available actions and an estimate of the expected
+payoff.</p>
+<p>The architecture follows the <a class="reference external" href="https://github.com/google-deepmind/open_spiel">OpenSpiel</a> residual design. It
+includes <code class="docutils literal notranslate"><span class="pre">nn_depth</span></code> residual blocks in addition to the input and
+output layers.</p>
+<p>Each residual block contains two convolutional layers producing
+<code class="docutils literal notranslate"><span class="pre">nn_width</span></code> channels. The output of a residual block is obtained by
+adding the block input to the output of the second convolutional layer,
+forming a residual connection.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="architecture.html" class="btn btn-neutral float-left" title="Architecture Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="policies.html" class="btn btn-neutral float-right" title="Policy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

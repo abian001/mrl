@@ -1,0 +1,225 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Development guide &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Limitations" href="limitations.html" />
+    <link rel="prev" title="Alpha Zero runner" href="alpha_zero_runner.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-linters">Running linters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#profiling">Profiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Development guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/development.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="development-guide">
+<h1>Development guide<a class="headerlink" href="#development-guide" title="Link to this heading"></a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>You need a Python environment with the following dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-<span class="w"> </span>python<span class="w"> </span><span class="m">3</span>.13.11
+-<span class="w"> </span>pytorch<span class="w"> </span><span class="m">2</span>.8.0
+-<span class="w"> </span>pyyaml<span class="w"> </span><span class="m">6</span>.0.3
+-<span class="w"> </span>h5py<span class="w"> </span><span class="m">3</span>.15.1
+-<span class="w"> </span>pydantic<span class="w"> </span><span class="m">2</span>.12.4
+-<span class="w"> </span>make<span class="w"> </span><span class="m">4</span>.4.1
+-<span class="w"> </span>graphviz<span class="w"> </span><span class="m">2</span>.42.4
+-<span class="w"> </span>pylint<span class="w"> </span><span class="m">4</span>.0.4
+-<span class="w"> </span>mypy<span class="w"> </span><span class="m">1</span>.71.1
+-<span class="w"> </span>pyright<span class="w"> </span><span class="m">1</span>.1.408
+-<span class="w"> </span>pytest<span class="w"> </span><span class="m">9</span>.0.2
+-<span class="w"> </span>pytest-asyncio<span class="w"> </span><span class="m">1</span>.3.0
+-<span class="w"> </span>sphinx<span class="w"> </span><span class="m">9</span>.1.0
+-<span class="w"> </span>sphinx_rtd_theme<span class="w"> </span><span class="m">3</span>.1.0
+-<span class="w"> </span>rstfmt<span class="w"> </span><span class="m">0</span>.0.14
+-<span class="w"> </span>gprof2dot<span class="w"> </span><span class="m">2025</span>.4.14
+-<span class="w"> </span>types-PyYAML<span class="w"> </span><span class="m">6</span>.0.12.20250915
+</pre></div>
+</div>
+<p>You can use the Dockerfile to create a Docker image.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>build<span class="w"> </span>mrl_dev<span class="w">      </span><span class="c1"># Create the image</span>
+docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>mrl_dev<span class="w">   </span><span class="c1"># Run a container from the image</span>
+</pre></div>
+</div>
+<p>If you want to use the GUI-based features, you must also configure the
+connection between the Docker container and your system display. The
+required settings are already included in the <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code>
+file, but they may need adjustment depending on your system.</p>
+<p>On macOS systems you will need to install and use <a class="reference external" href="https://www.xquartz.org/">XQuartz</a>.</p>
+<p>Once the container is running, you can verify that the library works by
+running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>quick_tests
+</pre></div>
+</div>
+</section>
+<section id="running-tests">
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
+<p>You can use the Makefile commands to run the test suites. The tests are
+organized into the following categories:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">quick_tests</span></code>: fast unit tests that execute in a short time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slow_tests</span></code>: integration tests that combine multiple components
+and take longer to run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">performance_tests</span></code>: tests that measure execution time for certain
+operations. These tests may fail depending on the performance of your
+machine.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">manual_tests</span></code>: tests for the terminal interface of the built-in
+games.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gui_tests</span></code>: tests for the GUI interface of the built-in games.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">debug_tests</span></code>: tests intended for debugging purposes. This set is
+initially empty.</p></li>
+</ul>
+<p>To run a specific test repeatedly during debugging, you can annotate it
+with the <code class="docutils literal notranslate"><span class="pre">debug</span></code> marker so that it is included in the <code class="docutils literal notranslate"><span class="pre">debug_tests</span></code>
+suite. You can then run it using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>debug_tests
+</pre></div>
+</div>
+</section>
+<section id="running-linters">
+<h2>Running linters<a class="headerlink" href="#running-linters" title="Link to this heading"></a></h2>
+<p>You can run static code checks using the Makefile commands (for example
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">pylint</span></code>).</p>
+<p>Three static analysis tools are used:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pylint</span></code> for style, syntax, and general code quality checks;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mypy</span></code> and <code class="docutils literal notranslate"><span class="pre">pyright</span></code> for static type checking.</p></li>
+</ul>
+</section>
+<section id="profiling">
+<h2>Profiling<a class="headerlink" href="#profiling" title="Link to this heading"></a></h2>
+<p>If you want to investigate performance issues, you can use the profiling
+command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>profile_debug_tests
+</pre></div>
+</div>
+<p>This command runs the <code class="docutils literal notranslate"><span class="pre">debug_tests</span></code> suite and generates a graphical
+report in PNG format called <code class="docutils literal notranslate"><span class="pre">profile_record.png</span></code>.</p>
+<p>Note that consecutive runs overwrite this file without warning. If you
+want to keep previous results, move the file to another location before
+running the command again.</p>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
+<p>The documentation source files are located in <code class="docutils literal notranslate"><span class="pre">doc/source</span></code>.</p>
+<p>You can format the edited source files using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>format_doc
+</pre></div>
+</div>
+<p>You can build the documentation using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>doc
+</pre></div>
+</div>
+<p>The generated documentation will be available in HTML format in the
+<code class="docutils literal notranslate"><span class="pre">doc/build</span></code> directory.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="alpha_zero_runner.html" class="btn btn-neutral float-left" title="Alpha Zero runner" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="limitations.html" class="btn btn-neutral float-right" title="Limitations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

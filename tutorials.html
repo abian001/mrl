@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorials &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Architecture Overview" href="architecture.html" />
+    <link rel="prev" title="Quick Start Guide" href="quick_start.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#runners-overview">Runners overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#getting-examples">Getting examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#game-runner">Game runner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#alpha-zero-runner">Alpha Zero Runner</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#policy-customization">Policy customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#game-customization">Game customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcts-game-customization">MCTS Game customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcts-oracle-customization">MCTS Oracle customization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-to-do-next">What to do next?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorials</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorials.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorials">
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading"></a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>You need a Python environment with the following dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-<span class="w"> </span>python<span class="w"> </span><span class="m">3</span>.13.11
+-<span class="w"> </span>pytorch<span class="w"> </span><span class="m">2</span>.8.0
+-<span class="w"> </span>pyyaml<span class="w"> </span><span class="m">6</span>.0.3
+-<span class="w"> </span>h5py<span class="w"> </span><span class="m">3</span>.15.1
+-<span class="w"> </span>pydantic<span class="w"> </span><span class="m">2</span>.12.4
+</pre></div>
+</div>
+<p>You can use the Dockerfile to create a Docker image.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>build<span class="w"> </span>mrl_prod<span class="w">      </span><span class="c1"># Create the image</span>
+docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>mrl_prod<span class="w">   </span><span class="c1"># Run a container from the image</span>
+</pre></div>
+</div>
+<p>If you want to use the GUI-based features, you will also need to enable
+communication between the Docker container and your system display. The
+required options are already included in the <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code>
+file, but they may need to be adjusted for your specific system.</p>
+<p>On macOS systems you will need to install and use <a class="reference external" href="https://www.xquartz.org/">XQuartz</a>.</p>
+<p>Once the container is running, you can verify that the library is
+available:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>-h
+run_alpha_zero<span class="w"> </span>-h
+</pre></div>
+</div>
+</section>
+<section id="runners-overview">
+<h2>Runners overview<a class="headerlink" href="#runners-overview" title="Link to this heading"></a></h2>
+<section id="getting-examples">
+<h3>Getting examples<a class="headerlink" href="#getting-examples" title="Link to this heading"></a></h3>
+<p>You need a YAML configuration file describing the game you want to run.</p>
+<p>You can generate the built-in examples with the following command. This
+will create a directory called <code class="docutils literal notranslate"><span class="pre">examples</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>get_examples
+</pre></div>
+</div>
+<p>NOTE: The container uses the directory <code class="docutils literal notranslate"><span class="pre">/mrl</span></code> as an alias for the
+<code class="docutils literal notranslate"><span class="pre">production_space</span></code> directory inside the repository. You only need to
+run this command once. The examples will persist across sessions even if
+you delete the container.</p>
+<p>If you are not using Docker, you can still retrieve the examples using
+the <code class="docutils literal notranslate"><span class="pre">get_examples</span></code> command, but you must also ensure that your Python
+path includes the example directory. The Docker image already adds this
+directory to <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>get_examples<span class="w"> </span>&lt;desired_destination_path&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:&lt;desired_destination_path&gt;
+</pre></div>
+</div>
+</section>
+<section id="game-runner">
+<h3>Game runner<a class="headerlink" href="#game-runner" title="Link to this heading"></a></h3>
+<p>You can play a game in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_manual.yaml<span class="w"> </span>--mode<span class="w"> </span>terminal
+</pre></div>
+</div>
+<p>If a GUI is available, you can use it instead:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_manual.yaml<span class="w"> </span>--mode<span class="w"> </span>gui
+</pre></div>
+</div>
+<p>You can run self-play games and collect outcome statistics:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_auto.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+</section>
+<section id="alpha-zero-runner">
+<h3>Alpha Zero Runner<a class="headerlink" href="#alpha-zero-runner" title="Link to this heading"></a></h3>
+<p>You can train an AlphaZero model. Note that the default configuration is
+only intended as a smoke test. To properly train a Tic Tac Toe model you
+will need to increase the training parameters.</p>
+<p>Keep in mind that larger training configurations require more time, so
+it is recommended to increase parameters incrementally to understand the
+overall training time.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>train
+</pre></div>
+</div>
+<p>You can evaluate the trained AlphaZero model against a random policy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+<p>You can also play against the trained AlphaZero model:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>terminal
+</pre></div>
+</div>
+<p>You can evaluate the trained AlphaZero model against another policy. In
+this example, the deterministic version of the trained model is
+evaluated against its non-deterministic counterpart.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_alpha_zero_auto.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+</section>
+</section>
+<section id="policy-customization">
+<h2>Policy customization<a class="headerlink" href="#policy-customization" title="Link to this heading"></a></h2>
+<p>You can create your own hard-coded policy to experiment with.</p>
+<p>An example policy class is available in <code class="docutils literal notranslate"><span class="pre">examples/opportunity_policy</span></code>.</p>
+<p>This policy is designed for the Tic Tac Toe game. It implements a
+<code class="docutils literal notranslate"><span class="pre">__call__</span></code> method that takes an observation and an action space as
+input and returns the action selected by the player.</p>
+<p>Depending on the configuration, the policy may:</p>
+<ul class="simple">
+<li><p>check whether a winning line is available and play the winning move;</p></li>
+<li><p>check whether the opponent has a winning line and block it;</p></li>
+<li><p>otherwise select an action randomly.</p></li>
+</ul>
+<p>Variables defined in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method can be configured through
+the YAML configuration file. See
+<code class="docutils literal notranslate"><span class="pre">examples/tic_tac_toe_custom_policy.yaml</span></code> for an example.</p>
+<p>In the configuration you must specify the policy name and the module
+path relative to a directory included in <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>. The <code class="docutils literal notranslate"><span class="pre">player</span></code>
+and <code class="docutils literal notranslate"><span class="pre">game</span></code> parameters are automatically provided by the framework and
+should not be included in the configuration.</p>
+<p>You can run the example with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_custom_policy.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+</section>
+<section id="game-customization">
+<h2>Game customization<a class="headerlink" href="#game-customization" title="Link to this heading"></a></h2>
+<p>You can create your own custom game to experiment with.</p>
+<p>An example game is provided in <code class="docutils literal notranslate"><span class="pre">examples/coordination.py</span></code>.</p>
+<p>This is a discrete-time game in which two players attempt to coordinate
+by selecting the same action over a series of attempts. The game keeps
+track of the history of attempts, and the final payoff is the average
+number of successful coordinations.</p>
+<p>The state includes:</p>
+<ul class="simple">
+<li><p>the history of previous attempts;</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">is_final</span></code> attribute, which indicates whether the current step
+is the last step of the game.</p></li>
+</ul>
+<p>A <em>perspective</em> represents how a player observes the game. At a minimum,
+a valid perspective must implement two methods:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">get_observation</span></code>: converts the state into the observation seen by
+the player;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_action_space</span></code>: returns the set of actions available to the
+player in the current state.</p></li>
+</ul>
+<p>This is a full-information game, so the observation is identical to the
+state. If you want to evaluate play statistics using the game runner,
+you must also implement a <code class="docutils literal notranslate"><span class="pre">get_payoff</span></code> method that returns a numerical
+value representing the outcome of the game.</p>
+<p>The game class itself represents the game rules. It must implement:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">make_initial_state</span></code> to generate the initial state;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_players</span></code> to list the players in the game;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_perspectives</span></code> to define the perspective associated with each
+player;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code> to update the game state.</p></li>
+</ul>
+<p>The signature of <code class="docutils literal notranslate"><span class="pre">update</span></code> depends on whether the game is turn-based or
+discrete-time. In discrete-time games all players act simultaneously, so
+all actions are available when <code class="docutils literal notranslate"><span class="pre">update</span></code> is called.</p>
+<p>The example also includes a policy for playing the game in the terminal.
+This policy derives from the <code class="docutils literal notranslate"><span class="pre">InteractivePolicy</span></code> class. Its
+<code class="docutils literal notranslate"><span class="pre">__call__</span></code> method prompts the user for input and returns a validated
+action.</p>
+<p>The policy also implements notification methods that communicate the
+state of the game to the user. For discrete-time games you must
+implement <code class="docutils literal notranslate"><span class="pre">notify_actions</span></code>, while turn-based games use
+<code class="docutils literal notranslate"><span class="pre">notify_action</span></code>.</p>
+<p>You can evaluate the game using predefined policies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/coordination_auto.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+<p>You can also play the game in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/coordination_manual.yaml<span class="w"> </span>--mode<span class="w"> </span>terminal
+</pre></div>
+</div>
+</section>
+<section id="mcts-game-customization">
+<h2>MCTS Game customization<a class="headerlink" href="#mcts-game-customization" title="Link to this heading"></a></h2>
+<p>The coordination game described above is not suitable for AlphaZero.</p>
+<p>The AlphaZero algorithm implemented here only supports turn-based,
+restorable games with a discrete action space and a payoff-observable
+perspective. The perspective must also be able to encode the state and
+action space in an array format suitable for neural network processing.</p>
+<p>The Centipede game provides an example of such a game.</p>
+<p>You must define a perspective whose <code class="docutils literal notranslate"><span class="pre">get_observation</span></code> method returns
+an <code class="docutils literal notranslate"><span class="pre">MCTSObservation</span></code>. This object lazily collects the information
+required by the algorithm when needed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">get_core</span></code> method returns a vector representation of the state. In
+this example it is a one-dimensional vector containing the payoff the
+player would receive by choosing the <code class="docutils literal notranslate"><span class="pre">TAKE</span></code> action at the current
+turn.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">get_action_space</span></code> method returns the list of actions available in
+the state.</p>
+<p>The game class must also implement a <code class="docutils literal notranslate"><span class="pre">restore</span></code> method in addition to
+the usual methods. This method reconstructs a game state compatible with
+a given observation. Since the example uses <code class="docutils literal notranslate"><span class="pre">MCTSObservation</span></code> and the
+game has full information, this method simply returns a copy of the
+state component.</p>
+<p>You can train an AlphaZero model (again, this configuration is only a
+smoke test):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/centipede_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>train
+</pre></div>
+</div>
+<p>You can evaluate the trained model against a random policy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/centipede_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+</section>
+<section id="mcts-oracle-customization">
+<h2>MCTS Oracle customization<a class="headerlink" href="#mcts-oracle-customization" title="Link to this heading"></a></h2>
+<p>You can create a custom oracle for training. An example implementation
+is provided in <code class="docutils literal notranslate"><span class="pre">simple_mlp.py</span></code>.</p>
+<p>This example shows how to create a custom neural network using building
+blocks already available in the library.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">SaveLoadModule</span></code> block extends <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> and adds
+<code class="docutils literal notranslate"><span class="pre">save</span></code> and <code class="docutils literal notranslate"><span class="pre">load</span></code> methods for storing and loading parameters as
+expected by the AlphaZero runner.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">OracleMixin</span></code> implements the core oracle functionality for
+computing expected payoff values and action probabilities.</p>
+<p>The mixin requires the following components to be defined in the
+constructor:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">torso</span></code>: a neural network that performs the initial processing of
+the input data. Its output is passed to the other two networks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">policy_head</span></code>: a neural network that computes the logits for the
+action probabilities (before the softmax operation).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value_head</span></code>: a neural network that computes the expected payoff
+for the input state.</p></li>
+</ul>
+<p>You must also call the base class constructor, passing the input shape
+(as a tuple of integers) and the output size (as an integer).</p>
+<p>You can train an AlphaZero model using the custom network:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero_custom_oracle.yaml<span class="w"> </span>--mode<span class="w"> </span>train
+</pre></div>
+</div>
+<p>NOTE: You can also implement a hard-coded oracle that does not require
+training. In that case you only need to implement the oracle protocol.
+Such an oracle can be used for evaluation together with policies that
+require an oracle (such as <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code>). See the implementation of
+<code class="docutils literal notranslate"><span class="pre">RandomRollout</span></code> for an example.</p>
+<section id="what-to-do-next">
+<h3>What to do next?<a class="headerlink" href="#what-to-do-next" title="Link to this heading"></a></h3>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">tic_tac_toe_alpha_zero.yaml</span></code> to allow longer training and try
+playing against the trained model.</p>
+<p>For example, you can modify the following parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">oracle.</span> <span class="pre">capacity.</span> <span class="pre">nn_width</span></code>: set to 18 (to increase the model
+capacity to learn complex strategies)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">mcts.</span> <span class="pre">number_of_simulation</span></code>: set to 225 (to obtain
+better move evaluations)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">max_buffer_length</span></code>: set to 10000 (to use more training
+examples at once during training)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainer.</span> <span class="pre">max_training_epochs</span></code>: set to 100 (to ensure the model is
+trained enough for each batch of training examples)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_epochs</span></code>: set to 100 (to train the model for longer)</p></li>
+</ul>
+<p>After applying the changes described above, the following results were
+obtained in my tests:</p>
+<ul class="simple">
+<li><p>InMemory strategy: After 40 minutes of training, the model achieved
+an average payoff of 0.79, with a 67% win rate and a 9% loss rate
+against the random policy.</p></li>
+<li><p>HDF5 strategy: After 26 minutes of training, the model achieved an
+average payoff of 0.74, with a 69% win rate and a 21% loss rate
+against the random policy.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick_start.html" class="btn btn-neutral float-left" title="Quick Start Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="Architecture Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

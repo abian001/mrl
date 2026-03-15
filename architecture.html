@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture Overview &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Oracle" href="oracles.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#game">Game</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#turn-based-games">Turn-based games</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#discrete-time-games">Discrete-time games</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#state">State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#perspective">Perspective</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#policy">Policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#oracle">Oracle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mcts-compatibility">MCTS Compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#execution-flow">Execution Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alphazero-integration">AlphaZero Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#experience-collection">Experience Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#neural-network-oracle">Neural Network Oracle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#training-loop">Training Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parallelization">Parallelization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture-overview">
+<h1>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading"></a></h1>
+<p>The library is organized around a set of abstractions that separate game
+logic, decision making, and execution. This allows new games, policies,
+and learning algorithms to be implemented independently.</p>
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="game">
+<h3>Game<a class="headerlink" href="#game" title="Link to this heading"></a></h3>
+<p>A <strong>Game</strong> encapsulates the rules of the environment. It is responsible
+for creating the initial state of the game, identifying the players, and
+defining how the state evolves when players take actions.</p>
+<p>Games may follow two different interaction models.</p>
+<section id="turn-based-games">
+<h4>Turn-based games<a class="headerlink" href="#turn-based-games" title="Link to this heading"></a></h4>
+<p>In turn-based games only one player acts at a time. These games
+implement the update method with a single action:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">State</span>
+</pre></div>
+</div>
+<p>The player allowed to act is identified through the <code class="docutils literal notranslate"><span class="pre">active_player</span></code>
+attribute of the state.</p>
+</section>
+<section id="discrete-time-games">
+<h4>Discrete-time games<a class="headerlink" href="#discrete-time-games" title="Link to this heading"></a></h4>
+<p>Some games allow players to act simultaneously. These games implement
+the update method using a tuple of actions, one for each player:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Action</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">State</span>
+</pre></div>
+</div>
+<p>The order of the actions corresponds to the order returned by
+<code class="docutils literal notranslate"><span class="pre">Game.get_players()</span></code>.</p>
+</section>
+</section>
+<section id="state">
+<h3>State<a class="headerlink" href="#state" title="Link to this heading"></a></h3>
+<p>A <strong>State</strong> represents a configuration of the game at a particular
+moment in time.</p>
+<p>The framework does not impose a specific structure on state objects.
+However, states expose two attributes:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">is_final</span></code></dt><dd><p>Indicates whether the state represents a terminal configuration of
+the game.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">active_player</span></code></dt><dd><p>Identifies the player whose turn it is in turn-based games.</p>
+</dd>
+</dl>
+<p>Apart from these conventions, the internal representation of the state
+is entirely defined by the game implementation.</p>
+</section>
+<section id="perspective">
+<h3>Perspective<a class="headerlink" href="#perspective" title="Link to this heading"></a></h3>
+<p>Players do not interact with the full game state directly. Instead, each
+player interacts with the game through a <strong>Perspective</strong>.</p>
+<p>A perspective defines:</p>
+<ul class="simple">
+<li><p>the <strong>observation</strong> available to the player</p></li>
+<li><p>the <strong>action space</strong> available in the current state</p></li>
+</ul>
+<p>This abstraction allows games with partial information to be
+implemented, as different players may observe different aspects of the
+underlying state.</p>
+<p>Policies therefore operate on observations rather than the full state.</p>
+<p>A perspective may implement a <strong>get_payoff(state)</strong> method, which is
+used to:</p>
+<ul class="simple">
+<li><p>Collect statistics when comparing policies during self-play or
+evaluation.</p></li>
+<li><p>Provide the value estimates needed for AlphaZero training, where the
+payoff of a state is recorded alongside the action probabilities
+generated by the MCTS policy.</p></li>
+</ul>
+</section>
+<section id="policy">
+<h3>Policy<a class="headerlink" href="#policy" title="Link to this heading"></a></h3>
+<p>A <strong>Policy</strong> selects actions based on observations produced by a
+perspective. Policies can implement a wide range of strategies,
+including:</p>
+<ul class="simple">
+<li><p>rule-based heuristics</p></li>
+<li><p>random policies</p></li>
+<li><p>search-based methods such as Monte Carlo Tree Search</p></li>
+<li><p>neural-network-based policies</p></li>
+</ul>
+<p>Policies are interchangeable and can be evaluated against each other
+using the game runner.</p>
+</section>
+<section id="oracle">
+<h3>Oracle<a class="headerlink" href="#oracle" title="Link to this heading"></a></h3>
+<p>Some policies rely on <strong>oracles</strong> to evaluate game states. For example,
+Monte Carlo Tree Search policies may use an oracle to perform rollout
+estimate state values using random simulations.</p>
+<p>Oracles are defined independently so that they can be reused across
+multiple policies.</p>
+</section>
+<section id="mcts-compatibility">
+<h3>MCTS Compatibility<a class="headerlink" href="#mcts-compatibility" title="Link to this heading"></a></h3>
+<p>Games that are used with Monte Carlo Tree Search must be <strong>restorable</strong>.
+This means that the game must be able to reconstruct a valid state from
+an observation.</p>
+<p>Such games implement:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">Observation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">State</span>
+</pre></div>
+</div>
+<p>This allows the search algorithm to rebuild states encountered during
+simulation using only the information available to the policy.</p>
+<p>Because of this mechanism, state objects do not need to follow a
+specific structure as long as they can be reconstructed from
+observations.</p>
+<p>Furthermore, this AlphaZero implementation supports
+imperfect-information games. The only requirement is that the
+reconstructed state must be compatible with the observation.</p>
+</section>
+</section>
+<section id="execution-flow">
+<h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Link to this heading"></a></h2>
+<p>A game run proceeds as follows:</p>
+<ol class="arabic simple">
+<li><p>The game creates an initial state.</p></li>
+<li><p>Each player receives an observation through its perspective.</p></li>
+<li><p>Policies select actions based on their observations.</p></li>
+<li><p>The game applies the action (or actions) and generates the next
+state.</p></li>
+<li><p>The process repeats until the state indicates that the game has
+reached a terminal condition.</p></li>
+</ol>
+</section>
+<section id="alphazero-integration">
+<h2>AlphaZero Integration<a class="headerlink" href="#alphazero-integration" title="Link to this heading"></a></h2>
+<p>The library implements an AlphaZero training pipeline.</p>
+<section id="experience-collection">
+<h3>Experience Collection<a class="headerlink" href="#experience-collection" title="Link to this heading"></a></h3>
+<p>Training an AlphaZero model begins with <strong>experience collection</strong>. An
+<strong>Experience Collector</strong> repeatedly plays the game, generating
+transitions of the form:</p>
+<ul class="simple">
+<li><p>the state observed by a player</p></li>
+<li><p>the action probabilities used by a policy</p></li>
+<li><p>the resulting payoff</p></li>
+</ul>
+<p>To generate these experiences, the collector uses the
+<strong>NonDeterministicMCTSPolicy</strong>, which itself relies on a neural network
+oracle to evaluate states and guide the search.</p>
+<p>Multiple games are played in sequence, and the resulting data is stored
+for training the neural network.</p>
+</section>
+<section id="neural-network-oracle">
+<h3>Neural Network Oracle<a class="headerlink" href="#neural-network-oracle" title="Link to this heading"></a></h3>
+<p>The oracle used during AlphaZero training is a neural network with two
+outputs:</p>
+<ul class="simple">
+<li><p><strong>Policy head:</strong> predicts the probability distribution over actions
+given the current state.</p></li>
+<li><p><strong>Value head:</strong> predicts the expected payoff from the current state.</p></li>
+</ul>
+<p>During experience collection, the network is queried at each decision
+point to guide the MCTS search.</p>
+</section>
+<section id="training-loop">
+<h3>Training Loop<a class="headerlink" href="#training-loop" title="Link to this heading"></a></h3>
+<p>Once sufficient experiences are collected, the network is trained using
+these samples:</p>
+<ol class="arabic simple">
+<li><p>For each experience, the policy head is trained to match the
+probabilities returned by the MCTS search.</p></li>
+<li><p>The value head is trained to predict the observed payoff at the end
+of the game.</p></li>
+</ol>
+<p>After training, the updated network is used in subsequent iterations of
+self-play, and the process repeats.</p>
+</section>
+<section id="parallelization">
+<h3>Parallelization<a class="headerlink" href="#parallelization" title="Link to this heading"></a></h3>
+<p>The experience collection process can be parallelized across multiple
+threads or processes:</p>
+<ul class="simple">
+<li><p><strong>InMemory mode:</strong> all collected experiences are stored in main
+memory for fast access during training.</p></li>
+<li><p><strong>HDF5 mode:</strong> each collector stores experiences to HDF5 files. This
+is useful when training across multiple machines or when the dataset
+is too large to fit in memory.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorials.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="oracles.html" class="btn btn-neutral float-right" title="Oracle" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

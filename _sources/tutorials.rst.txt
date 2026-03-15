@@ -1,0 +1,341 @@
+###########
+ Tutorials
+###########
+
+**************
+ Installation
+**************
+
+You need a Python environment with the following dependencies:
+
+.. code:: bash
+
+   - python 3.13.11
+   - pytorch 2.8.0
+   - pyyaml 6.0.3
+   - h5py 3.15.1
+   - pydantic 2.12.4
+
+You can use the Dockerfile to create a Docker image.
+
+.. code:: bash
+
+   docker compose build mrl_prod      # Create the image
+   docker compose run --rm mrl_prod   # Run a container from the image
+
+If you want to use the GUI-based features, you will also need to enable
+communication between the Docker container and your system display. The
+required options are already included in the ``docker-compose.yaml``
+file, but they may need to be adjusted for your specific system.
+
+On macOS systems you will need to install and use `XQuartz
+<https://www.xquartz.org/>`_.
+
+Once the container is running, you can verify that the library is
+available:
+
+.. code:: bash
+
+   run_game -h
+   run_alpha_zero -h
+
+******************
+ Runners overview
+******************
+
+Getting examples
+================
+
+You need a YAML configuration file describing the game you want to run.
+
+You can generate the built-in examples with the following command. This
+will create a directory called ``examples``.
+
+.. code:: bash
+
+   get_examples
+
+NOTE: The container uses the directory ``/mrl`` as an alias for the
+``production_space`` directory inside the repository. You only need to
+run this command once. The examples will persist across sessions even if
+you delete the container.
+
+If you are not using Docker, you can still retrieve the examples using
+the ``get_examples`` command, but you must also ensure that your Python
+path includes the example directory. The Docker image already adds this
+directory to ``PYTHONPATH``.
+
+.. code:: bash
+
+   get_examples <desired_destination_path>
+   export PYTHONPATH=$PYTHONPATH:<desired_destination_path>
+
+Game runner
+===========
+
+You can play a game in the terminal:
+
+.. code:: bash
+
+   run_game examples/tic_tac_toe_manual.yaml --mode terminal
+
+If a GUI is available, you can use it instead:
+
+.. code:: bash
+
+   run_game examples/tic_tac_toe_manual.yaml --mode gui
+
+You can run self-play games and collect outcome statistics:
+
+.. code:: bash
+
+   run_game examples/tic_tac_toe_auto.yaml --mode evaluate
+
+Alpha Zero Runner
+=================
+
+You can train an AlphaZero model. Note that the default configuration is
+only intended as a smoke test. To properly train a Tic Tac Toe model you
+will need to increase the training parameters.
+
+Keep in mind that larger training configurations require more time, so
+it is recommended to increase parameters incrementally to understand the
+overall training time.
+
+.. code:: bash
+
+   run_alpha_zero examples/tic_tac_toe_alpha_zero.yaml --mode train
+
+You can evaluate the trained AlphaZero model against a random policy:
+
+.. code:: bash
+
+   run_alpha_zero examples/tic_tac_toe_alpha_zero.yaml --mode evaluate
+
+You can also play against the trained AlphaZero model:
+
+.. code:: bash
+
+   run_alpha_zero examples/tic_tac_toe_alpha_zero.yaml --mode terminal
+
+You can evaluate the trained AlphaZero model against another policy. In
+this example, the deterministic version of the trained model is
+evaluated against its non-deterministic counterpart.
+
+.. code:: bash
+
+   run_game examples/tic_tac_toe_alpha_zero_auto.yaml --mode evaluate
+
+**********************
+ Policy customization
+**********************
+
+You can create your own hard-coded policy to experiment with.
+
+An example policy class is available in ``examples/opportunity_policy``.
+
+This policy is designed for the Tic Tac Toe game. It implements a
+``__call__`` method that takes an observation and an action space as
+input and returns the action selected by the player.
+
+Depending on the configuration, the policy may:
+
+-  check whether a winning line is available and play the winning move;
+-  check whether the opponent has a winning line and block it;
+-  otherwise select an action randomly.
+
+Variables defined in the ``__init__`` method can be configured through
+the YAML configuration file. See
+``examples/tic_tac_toe_custom_policy.yaml`` for an example.
+
+In the configuration you must specify the policy name and the module
+path relative to a directory included in ``PYTHONPATH``. The ``player``
+and ``game`` parameters are automatically provided by the framework and
+should not be included in the configuration.
+
+You can run the example with:
+
+.. code:: bash
+
+   run_game examples/tic_tac_toe_custom_policy.yaml --mode evaluate
+
+********************
+ Game customization
+********************
+
+You can create your own custom game to experiment with.
+
+An example game is provided in ``examples/coordination.py``.
+
+This is a discrete-time game in which two players attempt to coordinate
+by selecting the same action over a series of attempts. The game keeps
+track of the history of attempts, and the final payoff is the average
+number of successful coordinations.
+
+The state includes:
+
+-  the history of previous attempts;
+-  the ``is_final`` attribute, which indicates whether the current step
+   is the last step of the game.
+
+A *perspective* represents how a player observes the game. At a minimum,
+a valid perspective must implement two methods:
+
+-  ``get_observation``: converts the state into the observation seen by
+   the player;
+-  ``get_action_space``: returns the set of actions available to the
+   player in the current state.
+
+This is a full-information game, so the observation is identical to the
+state. If you want to evaluate play statistics using the game runner,
+you must also implement a ``get_payoff`` method that returns a numerical
+value representing the outcome of the game.
+
+The game class itself represents the game rules. It must implement:
+
+-  ``make_initial_state`` to generate the initial state;
+-  ``get_players`` to list the players in the game;
+-  ``get_perspectives`` to define the perspective associated with each
+   player;
+-  ``update`` to update the game state.
+
+The signature of ``update`` depends on whether the game is turn-based or
+discrete-time. In discrete-time games all players act simultaneously, so
+all actions are available when ``update`` is called.
+
+The example also includes a policy for playing the game in the terminal.
+This policy derives from the ``InteractivePolicy`` class. Its
+``__call__`` method prompts the user for input and returns a validated
+action.
+
+The policy also implements notification methods that communicate the
+state of the game to the user. For discrete-time games you must
+implement ``notify_actions``, while turn-based games use
+``notify_action``.
+
+You can evaluate the game using predefined policies:
+
+.. code:: bash
+
+   run_game examples/coordination_auto.yaml --mode evaluate
+
+You can also play the game in the terminal:
+
+.. code:: bash
+
+   run_game examples/coordination_manual.yaml --mode terminal
+
+*************************
+ MCTS Game customization
+*************************
+
+The coordination game described above is not suitable for AlphaZero.
+
+The AlphaZero algorithm implemented here only supports turn-based,
+restorable games with a discrete action space and a payoff-observable
+perspective. The perspective must also be able to encode the state and
+action space in an array format suitable for neural network processing.
+
+The Centipede game provides an example of such a game.
+
+You must define a perspective whose ``get_observation`` method returns
+an ``MCTSObservation``. This object lazily collects the information
+required by the algorithm when needed.
+
+The ``get_core`` method returns a vector representation of the state. In
+this example it is a one-dimensional vector containing the payoff the
+player would receive by choosing the ``TAKE`` action at the current
+turn.
+
+The ``get_action_space`` method returns the list of actions available in
+the state.
+
+The game class must also implement a ``restore`` method in addition to
+the usual methods. This method reconstructs a game state compatible with
+a given observation. Since the example uses ``MCTSObservation`` and the
+game has full information, this method simply returns a copy of the
+state component.
+
+You can train an AlphaZero model (again, this configuration is only a
+smoke test):
+
+.. code:: bash
+
+   run_alpha_zero examples/centipede_alpha_zero.yaml --mode train
+
+You can evaluate the trained model against a random policy:
+
+.. code:: bash
+
+   run_alpha_zero examples/centipede_alpha_zero.yaml --mode evaluate
+
+***************************
+ MCTS Oracle customization
+***************************
+
+You can create a custom oracle for training. An example implementation
+is provided in ``simple_mlp.py``.
+
+This example shows how to create a custom neural network using building
+blocks already available in the library.
+
+The ``SaveLoadModule`` block extends ``torch.nn.Module`` and adds
+``save`` and ``load`` methods for storing and loading parameters as
+expected by the AlphaZero runner.
+
+The ``OracleMixin`` implements the core oracle functionality for
+computing expected payoff values and action probabilities.
+
+The mixin requires the following components to be defined in the
+constructor:
+
+-  ``torso``: a neural network that performs the initial processing of
+   the input data. Its output is passed to the other two networks.
+-  ``policy_head``: a neural network that computes the logits for the
+   action probabilities (before the softmax operation).
+-  ``value_head``: a neural network that computes the expected payoff
+   for the input state.
+
+You must also call the base class constructor, passing the input shape
+(as a tuple of integers) and the output size (as an integer).
+
+You can train an AlphaZero model using the custom network:
+
+.. code:: bash
+
+   run_alpha_zero examples/tic_tac_toe_alpha_zero_custom_oracle.yaml --mode train
+
+NOTE: You can also implement a hard-coded oracle that does not require
+training. In that case you only need to implement the oracle protocol.
+Such an oracle can be used for evaluation together with policies that
+require an oracle (such as ``MCTSPolicy``). See the implementation of
+``RandomRollout`` for an example.
+
+What to do next?
+================
+
+Edit ``tic_tac_toe_alpha_zero.yaml`` to allow longer training and try
+playing against the trained model.
+
+For example, you can modify the following parameters:
+
+-  ``oracle. capacity. nn_width``: set to 18 (to increase the model
+   capacity to learn complex strategies)
+-  ``collector. mcts. number_of_simulation``: set to 225 (to obtain
+   better move evaluations)
+-  ``collector. max_buffer_length``: set to 10000 (to use more training
+   examples at once during training)
+-  ``trainer. max_training_epochs``: set to 100 (to ensure the model is
+   trained enough for each batch of training examples)
+-  ``number_of_epochs``: set to 100 (to train the model for longer)
+
+After applying the changes described above, the following results were
+obtained in my tests:
+
+-  InMemory strategy: After 40 minutes of training, the model achieved
+   an average payoff of 0.79, with a 67% win rate and a 9% loss rate
+   against the random policy.
+
+-  HDF5 strategy: After 26 minutes of training, the model achieved an
+   average payoff of 0.74, with a 69% win rate and a 21% loss rate
+   against the random policy.

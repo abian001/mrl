@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game runner &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Alpha Zero runner" href="alpha_zero_runner.html" />
+    <link rel="prev" title="Game" href="games.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Game runner</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example-configuration">Example configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#game">Game</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#policies">Policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shared-policies">Shared policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shared-oracles">Shared oracles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#evaluation-setup">Evaluation setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#standard-input-play">Standard Input Play</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gui-play">Gui Play</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Game runner</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/game_runner.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="game-runner">
+<h1>Game runner<a class="headerlink" href="#game-runner" title="Link to this heading"></a></h1>
+<p>The game runner is a command-line utility used to execute games. It can
+be used to:</p>
+<ul class="simple">
+<li><p>evaluate the outcome of policies playing against each other across
+multiple simulations;</p></li>
+<li><p>play the game interactively against a policy, provided that an
+appropriate interface is implemented.</p></li>
+</ul>
+<p>The game runner can be invoked from the command line as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_auto.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+<p>There are three available modes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluate</span></code>: evaluate policies against each other over multiple
+runs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">terminal</span></code>: play against a predefined policy using a standard-input
+interface (if implemented).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gui</span></code>: play against a predefined policy using a graphical interface
+(if implemented).</p></li>
+</ul>
+<section id="example-configuration">
+<h2>Example configuration<a class="headerlink" href="#example-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">game</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Coordination&#39;</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;coordination&#39;</span>
+<span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="nt">policies</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">O</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">policy_1</span>
+<span class="w">    </span><span class="nt">X</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;MCTSPolicy&#39;</span>
+<span class="w">        </span><span class="nt">oracle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">oracle_1</span>
+<span class="w">        </span><span class="nt">mcts</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">125</span>
+<span class="nt">shared_policies</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">policy_1</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;MCTSPolicy&#39;</span>
+<span class="w">        </span><span class="nt">oracle</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;RandomRollout&#39;</span>
+<span class="w">            </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
+<span class="w">        </span><span class="nt">mcts</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">125</span>
+<span class="nt">oracles</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">oracle_1</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;RandomRollout&#39;</span>
+<span class="w">        </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="nt">evaluation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">observed_players</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;O&#39;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-inf</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.50</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.50</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
+<span class="nt">stdin_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CoordinationStdin</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordination</span>
+<span class="nt">gui</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CoordinationGui</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordination_gui</span>
+</pre></div>
+</div>
+<p>The YAML configuration file is structured into several sections.</p>
+</section>
+<section id="game">
+<span id="game-runner-game"></span><h2>Game<a class="headerlink" href="#game" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">game</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Coordination&#39;</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;coordination&#39;</span>
+<span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">game</span></code> section contains the information required to construct the
+game instance.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: the name of the game class.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">module</span></code>: the module path where the class is defined.</p></li>
+<li><p>additional parameters correspond to arguments of the game class
+constructor.</p></li>
+</ul>
+<p>Predefined games included in the library do not require the <code class="docutils literal notranslate"><span class="pre">module</span></code>
+field.</p>
+</section>
+<section id="policies">
+<h2>Policies<a class="headerlink" href="#policies" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">policies</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">O</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">policy_1</span>
+<span class="w">    </span><span class="nt">X</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;MCTSPolicy&#39;</span>
+<span class="w">        </span><span class="nt">oracle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">oracle_1</span>
+<span class="w">        </span><span class="nt">mcts</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">125</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">policies</span></code> section defines the policy used by each player.</p>
+<p>Each entry must specify the policy name and optionally a module. If the
+policy is part of the built-in library, the module does not need to be
+specified.</p>
+<p>Policies can be defined in two ways:</p>
+<ul class="simple">
+<li><p>inline, directly inside the player configuration;</p></li>
+<li><p>by referencing a policy defined in the <code class="docutils literal notranslate"><span class="pre">shared_policies</span></code> section.</p></li>
+</ul>
+<p>Some policies require an oracle. In that case, the oracle can either be
+defined inline or referenced from the <code class="docutils literal notranslate"><span class="pre">oracles</span></code> section.</p>
+</section>
+<section id="shared-policies">
+<h2>Shared policies<a class="headerlink" href="#shared-policies" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">shared_policies</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">policy_1</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;MCTSPolicy&#39;</span>
+<span class="w">        </span><span class="nt">oracle</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;RandomRollout&#39;</span>
+<span class="w">            </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
+<span class="w">        </span><span class="nt">mcts</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">125</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">shared_policies</span></code> section defines policy configurations that are
+used by multiple players. This helps avoid duplication when several
+players use the same policy setup.</p>
+</section>
+<section id="shared-oracles">
+<h2>Shared oracles<a class="headerlink" href="#shared-oracles" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">oracles</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">oracle_1</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;RandomRollout&#39;</span>
+<span class="w">        </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">oracles</span></code> section defines oracle configurations that can be shared
+across multiple policies.</p>
+</section>
+<section id="evaluation-setup">
+<h2>Evaluation setup<a class="headerlink" href="#evaluation-setup" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">evaluation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">observed_players</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;O&#39;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-inf</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.50</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.50</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">evaluation</span></code> section specifies how the evaluation is performed and
+how the results are summarized.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_tests</span></code>: number of simulations to run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">observed_players</span></code>: list of players whose payoffs will be analyzed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buckets</span></code>: payoff ranges used to group results.</p></li>
+</ul>
+<p>At the end of the evaluation, the payoff values are grouped into the
+defined buckets. The final report shows how many runs produced payoffs
+within each bucket.</p>
+</section>
+<section id="standard-input-play">
+<span id="game-runner-stdin"></span><h2>Standard Input Play<a class="headerlink" href="#standard-input-play" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">stdin_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CoordinationStdin</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordination</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">stdin_policy</span></code> section defines the policy used for terminal-based
+interaction.</p>
+<p>This must be a policy derived from <code class="docutils literal notranslate"><span class="pre">InteractivePolicy</span></code>. See the
+Coordination game example for a reference implementation.</p>
+<p>There is no need to define this section when using the built-in
+standard-input interface for games already included in the library.</p>
+</section>
+<section id="gui-play">
+<span id="game-runner-gui"></span><h2>Gui Play<a class="headerlink" href="#gui-play" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">gui</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">make_gui</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordination_gui</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">gui</span></code> section defines the graphical interface used when running
+the game in GUI mode.</p>
+<p>The specified name must refer to a constructor function that returns an
+<code class="docutils literal notranslate"><span class="pre">mrl.tkinter_gui.gui.Gui</span></code> object. Examples can be found in the GUI
+implementations for Tic Tac Toe and Xiangqi.</p>
+<p>As with the terminal interface, this section is not required for games
+that already include a built-in GUI.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="games.html" class="btn btn-neutral float-left" title="Game" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="alpha_zero_runner.html" class="btn btn-neutral float-right" title="Alpha Zero runner" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

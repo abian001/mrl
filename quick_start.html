@@ -1,0 +1,245 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Guide &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="prev" title="A Library for Machine Learning and Reinforcement Learning" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">1. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-a-simple-game">2. Run a simple game</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#evaluate-a-policy-match">3. Evaluate a policy match</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train-a-minimal-alphazero">4. Train a minimal AlphaZero</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#play-against-the-trained-model">5. Play against the trained model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-next-steps">6. Optional next steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-in-brief">7. Architecture in brief</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">8. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start-guide">
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
+<p>This quick start guide will help you <strong>play a game and run a minimal
+AlphaZero training loop</strong>. By the end, you should be able to run a game
+in the terminal, see the output, and start experimenting.</p>
+<section id="installation">
+<h2>1. Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>You can run the library using <strong>Docker</strong> (recommended) or a local Python
+environment.</p>
+<p><strong>Using Docker:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build the production image</span>
+docker<span class="w"> </span>compose<span class="w"> </span>build<span class="w"> </span>mrl_prod
+
+<span class="c1"># Start a container interactively</span>
+docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>mrl_prod
+</pre></div>
+</div>
+<p><strong>Local Python environment (optional):</strong></p>
+<p>Install dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">pyyaml</span><span class="o">==</span><span class="m">6</span>.0.3<span class="w"> </span><span class="nv">h5py</span><span class="o">==</span><span class="m">3</span>.15.1<span class="w"> </span><span class="nv">pydantic</span><span class="o">==</span><span class="m">2</span>.12.4
+</pre></div>
+</div>
+<p>Install MRL:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Test that the library is available:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>-h
+</pre></div>
+</div>
+</section>
+<section id="run-a-simple-game">
+<h2>2. Run a simple game<a class="headerlink" href="#run-a-simple-game" title="Link to this heading"></a></h2>
+<p>We will start with <strong>TicTacToe</strong> and play against a random policy in the
+terminal.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_manual.yaml<span class="w"> </span>--mode<span class="w"> </span>terminal
+</pre></div>
+</div>
+<p>You should see a 3x3 grid and be prompted to make moves. Press the keys
+corresponding to the cell you want to place your symbol in.</p>
+</section>
+<section id="evaluate-a-policy-match">
+<h2>3. Evaluate a policy match<a class="headerlink" href="#evaluate-a-policy-match" title="Link to this heading"></a></h2>
+<p>Run a game automatically and see statistics for policy performance:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_game<span class="w"> </span>examples/tic_tac_toe_auto.yaml<span class="w"> </span>--mode<span class="w"> </span>evaluate
+</pre></div>
+</div>
+<p>This will run multiple simulations and show how the players perform.</p>
+<p>You will a report similar to this one.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Total<span class="w"> </span>plays<span class="w"> </span>as<span class="w"> </span>player<span class="w"> </span>O:<span class="w"> </span>N.<span class="w"> </span><span class="m">100</span>
+Mean<span class="w"> </span>Payoff:<span class="w"> </span><span class="m">0</span>.665
+Payoff<span class="w"> </span>distribution<span class="w"> </span><span class="k">in</span><span class="w"> </span>buckets:
+<span class="o">(</span>-inf,<span class="w"> </span><span class="m">0</span>.25<span class="o">)</span>:<span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="o">(</span><span class="m">28</span>%<span class="o">)</span>
+<span class="o">(</span><span class="m">0</span>.25,<span class="w"> </span><span class="m">0</span>.75<span class="o">)</span>:<span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="o">(</span><span class="m">11</span>%<span class="o">)</span>
+<span class="o">(</span><span class="m">0</span>.75,<span class="w"> </span>inf<span class="o">)</span>:<span class="w"> </span><span class="m">61</span><span class="w"> </span><span class="o">(</span><span class="m">61</span>%<span class="o">)</span>
+</pre></div>
+</div>
+<p>The report indicates that 100 games were simulated. Player O achieved a
+mean payoff of 0.665. In Tic-Tac-Toe, the payoff is 0 for losses, 1 for
+wins, and 0.5 for draws. Accordingly, the three buckets above represent
+losses, draws, and wins, respectively.</p>
+</section>
+<section id="train-a-minimal-alphazero">
+<h2>4. Train a minimal AlphaZero<a class="headerlink" href="#train-a-minimal-alphazero" title="Link to this heading"></a></h2>
+<p>Run a <strong>smoke test</strong> of AlphaZero training:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>train
+</pre></div>
+</div>
+<p>This will perform a few self-play episodes, collect experiences using
+the NonDeterministicMCTSPolicy, and update a neural network oracle.</p>
+</section>
+<section id="play-against-the-trained-model">
+<h2>5. Play against the trained model<a class="headerlink" href="#play-against-the-trained-model" title="Link to this heading"></a></h2>
+<p>Play against the model you just trained in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>terminal
+</pre></div>
+</div>
+</section>
+<section id="optional-next-steps">
+<h2>6. Optional next steps<a class="headerlink" href="#optional-next-steps" title="Link to this heading"></a></h2>
+<p>Once you have succeeded with the minimal workflow, you can explore:</p>
+<ul class="simple">
+<li><p><strong>Change games:</strong> Try <cite>StraightFour</cite>, <cite>Xiangqi</cite>, or
+<cite>RockPaperScissors</cite>.</p></li>
+<li><p><strong>Experiment with policies:</strong> Use MCTS, deterministic, or stochastic
+oracle policies.</p></li>
+<li><p><strong>Use GUI:</strong> Replace <cite>–mode terminal</cite> with <cite>–mode gui</cite> to use the
+built-in Tkinter GUI.</p></li>
+<li><p><strong>Modify AlphaZero parameters:</strong> Edit training YAML files to increase
+the number of simulations, episodes, or epochs.</p></li>
+</ul>
+</section>
+<section id="architecture-in-brief">
+<h2>7. Architecture in brief<a class="headerlink" href="#architecture-in-brief" title="Link to this heading"></a></h2>
+<p>The library is built around a few core abstractions:</p>
+<ul class="simple">
+<li><p><strong>Game:</strong> Produces states and enforces rules.</p></li>
+<li><p><strong>State:</strong> Can be any structure, must include <cite>is_final</cite> (and
+<cite>active_player</cite> for turn-based games).</p></li>
+<li><p><strong>Perspective:</strong> Defines what each player sees and optionally
+provides <cite>get_payoff(state)</cite>.</p></li>
+<li><p><strong>Policy:</strong> Chooses actions based on observations and action spaces.</p></li>
+<li><p><strong>Oracle:</strong> Evaluates states and provides action probabilities (used
+by MCTS and AlphaZero).</p></li>
+</ul>
+<p>This separation allows <strong>new games, policies, and neural networks</strong> to
+be plugged in easily.</p>
+</section>
+<section id="troubleshooting">
+<h2>8. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>If you cannot run Docker GUI apps on Mac, make sure <a class="reference external" href="https://www.xquartz.org/">XQuartz</a> is installed.</p></li>
+<li><p>Use <cite>run_game -h</cite> or <cite>run_alpha_zero -h</cite> to see all command line
+options.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="A Library for Machine Learning and Reinforcement Learning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

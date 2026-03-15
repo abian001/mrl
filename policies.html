@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Policy &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Game" href="games.html" />
+    <link rel="prev" title="Oracle" href="oracles.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Policy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#randompolicy">RandomPolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#firstchoicepolicy">FirstChoicePolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manualpolicy">ManualPolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deterministicoraclepolicy">DeterministicOraclePolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stochasticoraclepolicy">StochasticOraclePolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mctspolicy">MCTSPolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nondeterministicmctspolicy">NonDeterministicMCTSPolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#memoryfullmctspolicy">MemoryfullMCTSPolicy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Policy</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/policies.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="policy">
+<h1>Policy<a class="headerlink" href="#policy" title="Link to this heading"></a></h1>
+<p>A policy is an object that allows a player to choose the next action in
+a given state.</p>
+<p>Policies must follow the protocol defined below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Policy</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">ObservationContra</span><span class="p">,</span> <span class="n">ActionCo</span><span class="p">,</span> <span class="n">ActionSpaceContra</span><span class="p">]):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">ObservationContra</span><span class="p">,</span> <span class="n">action_space</span><span class="p">:</span> <span class="n">ActionSpaceContra</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ActionCo</span><span class="p">:</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Below there is a list of policies which are built-in the mrl library.</p>
+<section id="randompolicy">
+<h2>RandomPolicy<a class="headerlink" href="#randompolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomPolicy</span>
+</pre></div>
+</div>
+<p>The random policy returns an action selected uniformly at random from a
+discrete action space. As a precondition, the action space must be a
+sequence.</p>
+</section>
+<section id="firstchoicepolicy">
+<h2>FirstChoicePolicy<a class="headerlink" href="#firstchoicepolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FirstChoicePolicy</span>
+</pre></div>
+</div>
+<p>The first choice policy always returns the first action listed in the
+action space. As a precondition, the action space must be a sequence.</p>
+</section>
+<section id="manualpolicy">
+<h2>ManualPolicy<a class="headerlink" href="#manualpolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ManualPolicy</span>
+</pre></div>
+</div>
+<p>This policy represents a human player interacting with the system
+through either standard input (terminal) or the GUI. The action is
+chosen interactively by the user.</p>
+</section>
+<section id="deterministicoraclepolicy">
+<h2>DeterministicOraclePolicy<a class="headerlink" href="#deterministicoraclepolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomRollout</span>
+<span class="w">    </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
+</pre></div>
+</div>
+<p>This policy requires a discrete action space and the definition of an
+oracle.</p>
+<p>The policy queries the oracle to obtain the probability distribution
+over all actions in the action space. It then selects the action with
+the highest probability.</p>
+</section>
+<section id="stochasticoraclepolicy">
+<h2>StochasticOraclePolicy<a class="headerlink" href="#stochasticoraclepolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StochasticOraclePolicy</span>
+<span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielMLP</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">input_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18</span>
+<span class="w">        </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9</span>
+</pre></div>
+</div>
+<p>This policy requires a discrete action space and the definition of an
+oracle.</p>
+<p>The policy queries the oracle to obtain a probability distribution over
+the available actions. It then selects an action by sampling from this
+distribution.</p>
+</section>
+<section id="mctspolicy">
+<span id="mcts-policy"></span><h2>MCTSPolicy<a class="headerlink" href="#mctspolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCTSPolicy</span>
+<span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielConv</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">input_shape</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span>
+<span class="nt">mcts</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
+</pre></div>
+</div>
+<p>This policy requires a discrete action space and an oracle.</p>
+<p>The policy performs a Monte Carlo Tree Search (MCTS) starting from the
+current state. The simulation is repeated a number of times and uses the
+PUCB exploration strategy.</p>
+<p>The PUCB policy balances:</p>
+<ul class="simple">
+<li><p>the expected value of an action (estimated by the oracle), and</p></li>
+<li><p>the number of times the action has already been explored.</p></li>
+</ul>
+<p>Actions that have been explored less frequently are therefore favored
+for exploration.</p>
+<p>After completing the simulations, the policy selects the action that has
+been visited most often during the search.</p>
+<p>The parameters have the following meaning:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_simulations</span></code>: number of simulations performed for each
+decision.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pucb_constant</span></code>: exploration weight. Higher values encourage
+exploration of less-visited actions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code>: discount applied to payoffs that occur later in
+the game.</p></li>
+</ul>
+</section>
+<section id="nondeterministicmctspolicy">
+<span id="nondet-mcts-policy"></span><h2>NonDeterministicMCTSPolicy<a class="headerlink" href="#nondeterministicmctspolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NonDeterministicMCTSPolicy</span>
+<span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomRollout</span>
+<span class="w">    </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
+<span class="nt">mcts</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
+<span class="w">    </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
+</pre></div>
+</div>
+<p>This policy performs the same MCTS simulation as <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code> but
+selects the final action stochastically.</p>
+<p>Instead of choosing the most visited action, the policy samples from the
+distribution defined by the visit counts of the actions explored during
+the search.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">temperature</span></code> parameter controls the amount of randomness:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">=</span> <span class="pre">1.0</span></code>: the sampling distribution directly reflects
+the visit frequencies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">=</span> <span class="pre">0.0</span></code>: the policy behaves deterministically and
+selects the most visited action.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">→</span> <span class="pre">∞</span></code>: uniform random selection over all actions.</p></li>
+<li><p>intermediate values provide a smooth transition between the extremes.</p></li>
+</ul>
+</section>
+<section id="memoryfullmctspolicy">
+<h2>MemoryfullMCTSPolicy<a class="headerlink" href="#memoryfullmctspolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MemoryfullMCTSPolicy</span>
+<span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomRollout</span>
+<span class="w">    </span><span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
+<span class="nt">mcts</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
+</pre></div>
+</div>
+<p>This policy behaves similarly to <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code> but retains the results
+of previous simulations.</p>
+<p>While <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code> discards all simulation data after each call,
+<code class="docutils literal notranslate"><span class="pre">MemoryfullMCTSPolicy</span></code> stores this information. If the same state is
+encountered again, the stored statistics are combined with the new
+simulations to guide the next decision.</p>
+<p>In practice, <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code> is often preferred. When the oracle is still
+being trained, early simulations may be noisy or random, and retaining
+them can negatively affect later decisions.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="oracles.html" class="btn btn-neutral float-left" title="Oracle" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="games.html" class="btn btn-neutral float-right" title="Game" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

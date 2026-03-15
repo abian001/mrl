@@ -1,0 +1,468 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha Zero runner &mdash; MRL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development guide" href="development.html" />
+    <link rel="prev" title="Game runner" href="game_runner.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MRL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oracles.html">Oracle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="policies.html">Policy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="games.html">Game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game_runner.html">Game runner</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Alpha Zero runner</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example-configuration">Example configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#game">Game</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-zero-type">Alpha Zero Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#oracle">Oracle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#experience-collector">Experience collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#trainer">Trainer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#report-generator">Report generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manual-play">Manual play</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#number-of-epochs">Number of epochs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workspace">Workspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-zero-evaluation">Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hdf5-specific-settings">HDF5 specific settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#standard-input-play">Standard Input Play</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gui-play">Gui Play</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MRL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Alpha Zero runner</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/alpha_zero_runner.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="alpha-zero-runner">
+<h1>Alpha Zero runner<a class="headerlink" href="#alpha-zero-runner" title="Link to this heading"></a></h1>
+<p>The AlphaZero runner is a command-line utility for training and testing
+AlphaZero models. It can be used to:</p>
+<ul class="simple">
+<li><p>train a new AlphaZero model or resume training an existing model;</p></li>
+<li><p>evaluate a trained model against a random policy;</p></li>
+<li><p>play against the trained model using either the terminal or the GUI.</p></li>
+</ul>
+<p>The runner can be invoked from the command line as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_alpha_zero<span class="w"> </span>examples/tic_tac_toe_alpha_zero.yaml<span class="w"> </span>--mode<span class="w"> </span>train
+</pre></div>
+</div>
+<p>There are six available modes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code>: train a new AlphaZero model. This mode prevents
+overwriting existing models.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overwrite</span></code>: train a new AlphaZero model and overwrite any existing
+model files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resume</span></code>: resume training from an existing model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluate</span></code>: evaluate the trained model against a random policy.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">terminal</span></code>: play against the trained model using the terminal
+interface.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gui</span></code>: play against the trained model using the graphical
+interface.</p></li>
+</ul>
+<section id="example-configuration">
+<h2>Example configuration<a class="headerlink" href="#example-configuration" title="Link to this heading"></a></h2>
+<p>The following YAML configuration illustrates a complete setup. The
+individual sections are described below.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">game</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCTSTicTacToe</span>
+<span class="w">    </span><span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random</span>
+<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HDF5</span>
+<span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielMLP</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">input_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18</span>
+<span class="w">        </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9</span>
+<span class="w">        </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">        </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tic_tac_toe_alpha_zero</span>
+<span class="nt">collector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">number_of_processes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">mcts</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">        </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">    </span><span class="nt">max_buffer_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">    </span><span class="nt">number_of_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">temperature_schedule</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.0</span><span class="p p-Indicator">]</span>
+<span class="nt">trainer</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32</span>
+<span class="w">    </span><span class="nt">max_training_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">early_stop_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
+<span class="w">    </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
+<span class="w">    </span><span class="nt">loading_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">report_generator</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">oracle_led_players</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;O&#39;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-inf</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.25</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.25</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.75</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.75</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
+<span class="nt">number_of_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">evaluation_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="nt">hdf5_path_prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tic_tac_toe_data</span>
+<span class="nt">server_hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
+<span class="nt">server_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8888</span>
+<span class="nt">workspace_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test_workspace</span>
+<span class="nt">manual_play</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">manual_player</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;O&#39;</span>
+<span class="w">    </span><span class="nt">autonomous_policy</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="nt">stdin_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TicTacToeStdin</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mrl.tic_tac_toe.game</span>
+<span class="nt">gui</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">make_gui</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mrl.tic_tac_toe.tkinter_gui</span>
+</pre></div>
+</div>
+</section>
+<section id="game">
+<h2>Game<a class="headerlink" href="#game" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">game</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCTSTicTacToe</span>
+<span class="w">    </span><span class="nt">first_player</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random</span>
+</pre></div>
+</div>
+<p>This section describes the game configuration. It follows the same
+structure used by the <code class="docutils literal notranslate"><span class="pre">game_runner</span></code>. See the <a class="reference internal" href="game_runner.html#game-runner-game"><span class="std std-ref">game</span></a> for details.</p>
+</section>
+<section id="alpha-zero-type">
+<h2>Alpha Zero Type<a class="headerlink" href="#alpha-zero-type" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HDF5</span>
+
+<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">InMemory</span>
+</pre></div>
+</div>
+<p>This setting determines how training data is stored.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">InMemory</span></code>: all training data is kept in memory, even when multiple
+training processes are used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDF5</span></code>: training data is stored in shared HDF5 files.</p></li>
+</ul>
+<p>The HDF5 mode is useful when the dataset is too large to fit in memory.</p>
+</section>
+<section id="oracle">
+<h2>Oracle<a class="headerlink" href="#oracle" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">oracle</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenSpielMLP</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">input_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18</span>
+<span class="w">        </span><span class="nt">output_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9</span>
+<span class="w">        </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">        </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tic_tac_toe_alpha_zero</span>
+</pre></div>
+</div>
+<p>This section defines the model being trained.</p>
+<p>It includes:</p>
+<ul class="simple">
+<li><p>the name of the oracle class;</p></li>
+<li><p>optional parameters required by the oracle constructor;</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">file_path</span></code> specifying where the model parameters are saved.</p></li>
+</ul>
+<p>Custom oracle implementations must support the <code class="docutils literal notranslate"><span class="pre">SaveLoad</span></code> protocol so
+that their parameters can be stored and restored.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SaveLoad</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save parameters to file&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load parameters from file&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="experience-collector">
+<h2>Experience collector<a class="headerlink" href="#experience-collector" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">collector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">number_of_processes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">mcts</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">        </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">    </span><span class="nt">max_buffer_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">    </span><span class="nt">number_of_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">temperature_schedule</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.0</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">100</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">200</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.1</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>This section configures the processes responsible for generating
+training experience.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_processes</span></code>: number of parallel simulation processes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mcts</span></code>: parameters used by the MCTS policy during training. See the
+<a class="reference internal" href="policies.html#mcts-policy"><span class="std std-ref">MCTSPolicy</span></a> for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_buffer_length</span></code>: maximum number of experience samples stored by
+each process. When this threshold is reached, older data is discarded
+(<code class="docutils literal notranslate"><span class="pre">InMemory</span></code> mode) or written to disk (<code class="docutils literal notranslate"><span class="pre">HDF5</span></code> mode).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_episodes</span></code>: number of games simulated per training epoch.</p></li>
+</ul>
+<p>Experience is generated using the <code class="docutils literal notranslate"><span class="pre">NonDeterministicMCTSPolicy</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">temperature_schedule</span></code> controls how the exploration temperature
+changes over time. It is defined as a list of pairs:</p>
+<p><code class="docutils literal notranslate"><span class="pre">[epoch_number,</span> <span class="pre">temperature_value]</span></code></p>
+<p>When the training epoch reaches <code class="docutils literal notranslate"><span class="pre">epoch_number</span></code>, the temperature is
+updated to the specified value.</p>
+<p>See the <a class="reference internal" href="policies.html#nondet-mcts-policy"><span class="std std-ref">Non Deterministic MCTSPolicy</span></a> for
+details about the <code class="docutils literal notranslate"><span class="pre">temperature</span></code> parameter.</p>
+</section>
+<section id="trainer">
+<h2>Trainer<a class="headerlink" href="#trainer" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">trainer</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32</span>
+<span class="w">    </span><span class="nt">max_training_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">early_stop_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
+<span class="w">    </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
+<span class="w">    </span><span class="nt">loading_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+</div>
+<p>This section defines the neural network training parameters.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code>: number of experience samples processed in each
+training batch.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_training_epochs</span></code>: maximum number of passes over the training
+data per training epoch.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">early_stop_loss</span></code>: threshold used to stop training early if the
+loss falls below this value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">learning_rate</span></code>: learning rate used by the optimizer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">loading_workers</span></code>: number of worker threads used to prepare
+training data.</p></li>
+</ul>
+</section>
+<section id="report-generator">
+<h2>Report generator<a class="headerlink" href="#report-generator" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">report_generator</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">oracle_led_players</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;O&#39;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-inf</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.25</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.25</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.75</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.75</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>This section defines how evaluation results are reported.</p>
+<p>During training, whenever a model is considered an improvement over its
+predecessor (see <a class="reference external" href="alpha_zero_evaluation">evaluation</a>), it is also
+evaluated against a random policy. Its performance against the random
+policy is then reported in the standard output.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">oracle_led_players</span></code>: players controlled by the trained model
+during evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_tests</span></code>: number of evaluation games to run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buckets</span></code>: payoff ranges used to group evaluation results.</p></li>
+</ul>
+<p>When a game finishes, the payoff determines which bucket the result
+belongs to. The report summarizes how many games fall into each bucket
+for each observed player.</p>
+<ul class="simple">
+<li><p>For <code class="docutils literal notranslate"><span class="pre">InMemory</span></code> training, the report is generated every epoch after
+filling the training buffer with training examples.</p></li>
+<li><p>For <code class="docutils literal notranslate"><span class="pre">HDF5</span></code> training, the report is generated every time a better
+model has been trained.</p></li>
+</ul>
+</section>
+<section id="manual-play">
+<h2>Manual play<a class="headerlink" href="#manual-play" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">manual_play</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">manual_player</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;O&#39;</span>
+<span class="w">    </span><span class="nt">autonomous_policy</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+</pre></div>
+</div>
+<p>This section configures manual play against the trained model.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">manual_player</span></code> specifies which player is controlled by the user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">autonomous_policy</span></code> defines the policy used by the other players.</p></li>
+</ul>
+<p>If the selected policy requires an oracle, it will automatically use the
+oracle defined earlier in the configuration.</p>
+</section>
+<section id="number-of-epochs">
+<h2>Number of epochs<a class="headerlink" href="#number-of-epochs" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">number_of_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+</div>
+<p>This parameter defines the number of training epochs.</p>
+<p>During each epoch:</p>
+<ol class="arabic simple">
+<li><p>the experience collector generates episodes;</p></li>
+<li><p>the trainer updates the neural network using the collected data.</p></li>
+</ol>
+</section>
+<section id="workspace">
+<h2>Workspace<a class="headerlink" href="#workspace" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">workspace_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test_workspace</span>
+</pre></div>
+</div>
+<p>This directory is used to store trained models and temporary data.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">HDF5</span></code> mode, intermediate model versions and training datasets are
+also written to this directory.</p>
+</section>
+<section id="alpha-zero-evaluation">
+<span id="id1"></span><h2>Evaluation<a class="headerlink" href="#alpha-zero-evaluation" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">evaluation_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</pre></div>
+</div>
+<p>The model is updated at every epoch. To prevent performance regression,
+each new model is evaluated against previously saved models. If the new
+model performs better according to a set of evaluation tests, it becomes
+the new best model. The previous best model is then added to the list of
+older models for future comparisons.</p>
+<p>Older models consist of all models that were previously considered the
+best at some point during training. Each older model is saved as
+&lt;oracle_file_path&gt;_old_&lt;numeric_id&gt; and remains available for testing
+after training is complete.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluation_episodes</span></code>: Specifies the number of games played between
+the new model and each older model during evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_old_models</span></code>: Defines the maximum number of older models
+retained for evaluation. If this limit is exceeded, the least
+relevant models are discarded so that only the top max_old_models
+previous models are kept.</p></li>
+</ul>
+</section>
+<section id="hdf5-specific-settings">
+<h2>HDF5 specific settings<a class="headerlink" href="#hdf5-specific-settings" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">hdf5_path_prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tic_tac_toe_data</span>
+<span class="nt">server_hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
+<span class="nt">server_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8888</span>
+</pre></div>
+</div>
+<p>These settings are only used when the training type is <code class="docutils literal notranslate"><span class="pre">HDF5</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hdf5_path_prefix</span></code>: Prefix used for the HDF5 files created by the
+collection processes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">server_hostname</span></code> and <code class="docutils literal notranslate"><span class="pre">server_port</span></code>: The network location where
+the main process runs and accepts data submissions from child
+processes.</p></li>
+</ul>
+</section>
+<section id="standard-input-play">
+<h2>Standard Input Play<a class="headerlink" href="#standard-input-play" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">stdin_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TicTacToeStdin</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mrl.tic_tac_toe.game</span>
+</pre></div>
+</div>
+<p>This section describes the terminal interface for manual play. It
+follows the same structure as <code class="docutils literal notranslate"><span class="pre">game_runner</span></code>. This section can be
+omitted for built-in games. See the <a class="reference internal" href="game_runner.html#game-runner-stdin"><span class="std std-ref">stdin</span></a> for
+details.</p>
+</section>
+<section id="gui-play">
+<h2>Gui Play<a class="headerlink" href="#gui-play" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">gui</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">make_gui</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mrl.tic_tac_toe.tkinter_gui</span>
+</pre></div>
+</div>
+<p>This section describes the graphical interface for manual play. It
+follows the same structure as <code class="docutils literal notranslate"><span class="pre">game_runner</span></code>. This section can be
+omitted for built-in games. See the <a class="reference internal" href="game_runner.html#game-runner-gui"><span class="std std-ref">gui</span></a> for
+details.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="game_runner.html" class="btn btn-neutral float-left" title="Game runner" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="development.html" class="btn btn-neutral float-right" title="Development guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026. Alessandro Bianco. Licensed under BSD-3-Clause.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
