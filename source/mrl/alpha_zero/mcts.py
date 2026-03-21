@@ -133,6 +133,9 @@ class MCTSPolicy(Generic[Player]):
         action_space: DiscreteActionSpace
     ) -> Action:
         root = self._simulate(observation)
+        return self._get_most_visited_action(root)
+
+    def _get_most_visited_action(self, root: StateNode) -> Action:
         return max(
             root.actions.items(),
             key = lambda x: x[1].visits
@@ -212,6 +215,9 @@ class NonDeterministicMCTSPolicy(MCTSPolicy):
         temperature: float
     ) -> tuple[Action, np.ndarray]:
         root = self._simulate(observation)
+        if temperature < 1e-9:
+            return self._get_zero_temperature_action_and_probabilities(root)
+
         temperature_inverse = 1.0 / temperature
         probabilities = np.fromiter((
             (
@@ -219,8 +225,30 @@ class NonDeterministicMCTSPolicy(MCTSPolicy):
             ) ** temperature_inverse
             for a in self.full_action_space
         ), dtype = float)
+        probabilities = self._normalize_probabilities(probabilities, observation)
         action = np.random.choice(self.full_action_space, p = probabilities)
         return action, probabilities
+
+    def _get_zero_temperature_action_and_probabilities(
+        self,
+        root: StateNode
+    ) -> tuple[Action, np.ndarray]:
+        action = self._get_most_visited_action(root)
+        probabilities = np.zeros(len(self.full_action_space), dtype = float)
+        probabilities[action] = 1.0
+        return action, probabilities
+
+    def _normalize_probabilities(
+        self,
+        probabilities: np.ndarray,
+        observation: MCTSObservation
+    ) -> np.ndarray:
+        total_probability = probabilities.sum()
+        if total_probability <= 0.0:
+            probabilities = observation.legal_mask.astype(float)
+            probabilities /= probabilities.sum()
+            return probabilities
+        return probabilities / total_probability
 
 
 class MemoryfullMCTSPolicy(MCTSPolicy, InteractivePolicy, Generic[Player]):

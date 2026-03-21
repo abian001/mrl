@@ -121,3 +121,75 @@ def test_mcts_prefers_first_move_after_two_simulations(tic_tac_toe: tuple[MCTSGa
 
     assert probabilities[0] == pytest.approx(1.0)
     assert probabilities[1:].sum() == pytest.approx(0.0)
+
+
+class SplitRootVisitsOracle(Oracle):
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        if len(observation.action_space) == 9:
+            return (0.6, 0.4) + (0.0,) * 7
+        return tuple(1.0 for _ in range(9))
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        if len(observation.action_space) == 8:
+            return -10.0
+        return 0.0
+
+
+@pytest.mark.quick
+def test_mcts_normalizes_temperature_adjusted_root_probabilities(
+    tic_tac_toe: tuple[MCTSGame, Oracle]
+):
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = SplitRootVisitsOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0,
+            temperature = 0.5
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    _, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 0.5
+    )
+
+    assert probabilities.sum() == pytest.approx(1.0)
+    assert probabilities[0] == pytest.approx(0.5)
+    assert probabilities[1] == pytest.approx(0.5)
+    assert probabilities[2:].sum() == pytest.approx(0.0)
+
+
+@pytest.mark.quick
+def test_mcts_returns_one_hot_probabilities_for_zero_temperature(
+    tic_tac_toe: tuple[MCTSGame, Oracle]
+):
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = FirstMoveOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0,
+            temperature = 0.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    action, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 0.0
+    )
+
+    assert action == 0
+    assert probabilities[0] == pytest.approx(1.0)
+    assert probabilities[1:].sum() == pytest.approx(0.0)
