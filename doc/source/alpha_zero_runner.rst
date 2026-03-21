@@ -55,6 +55,8 @@ individual sections are described below.
            number_of_simulations: 1
            pucb_constant: 1.0
            discount_factor: 1.0
+           dirichlet_alpha: 0.3
+           dirichlet_weight: 0.25
        max_buffer_length: 100
        number_of_episodes: 1
        temperature_schedule:
@@ -172,6 +174,8 @@ that their parameters can be stored and restored.
            number_of_simulations: 1
            pucb_constant: 1.0
            discount_factor: 1.0
+           dirichlet_alpha: 0.3
+           dirichlet_weight: 0.25
        max_buffer_length: 100
        number_of_episodes: 1
        temperature_schedule:

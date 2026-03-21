@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 import pytest
 from mrl.tic_tac_toe.game import Player
 from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe, Perspective
@@ -165,6 +166,60 @@ def test_mcts_normalizes_temperature_adjusted_root_probabilities(
     assert probabilities.sum() == pytest.approx(1.0)
     assert probabilities[0] == pytest.approx(0.5)
     assert probabilities[1] == pytest.approx(0.5)
+    assert probabilities[2:].sum() == pytest.approx(0.0)
+
+
+class TwoMoveOracle(Oracle):
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        return (1.0, 0.0) + (0.0,) * 7
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        return 0.0
+
+
+@pytest.mark.quick
+def test_mcts_applies_dirichlet_noise_at_root(
+    tic_tac_toe: tuple[MCTSGame, Oracle],
+    monkeypatch: pytest.MonkeyPatch
+):
+    captured_alpha = None
+
+    def fake_dirichlet(alpha):
+        nonlocal captured_alpha
+        captured_alpha = alpha
+        return np.array((0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+
+    monkeypatch.setattr(np.random, 'dirichlet', fake_dirichlet)
+
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = TwoMoveOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 1,
+            pucb_constant = 1.0,
+            temperature = 1.0,
+            dirichlet_alpha = 0.3,
+            dirichlet_weight = 1.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    _, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 1.0
+    )
+
+    assert captured_alpha is not None
+    assert tuple(captured_alpha) == (0.3,) * 9
+    assert probabilities[1] == pytest.approx(1.0)
+    assert probabilities[:1].sum() == pytest.approx(0.0)
     assert probabilities[2:].sum() == pytest.approx(0.0)
 
 

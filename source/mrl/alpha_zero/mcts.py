@@ -55,17 +55,34 @@ class ActionNode:
     states: Dict[bytes, StateNode] = field(default_factory = dict)
 
 
+@dataclass(frozen = True)
+class DirichletNoise:
+    alpha: float = 0.0
+    weight: float = 0.0
+
+
 class PUCBPolicy:
 
-    def __init__(self, exploration_weight: float, oracle: Oracle) -> None:
-        self.state_node: StateNode = StateNode()
+    def __init__(
+        self,
+        exploration_weight: float,
+        oracle: Oracle,
+        dirichlet_noise: DirichletNoise = DirichletNoise()
+    ) -> None:
+        root = StateNode()
+        self.root: StateNode = root
+        self.state_node: StateNode = root
         self.action_node: ActionNode | None = None
+        self.root_priors: np.ndarray | None = None
         self.exploration_weight = exploration_weight
         self.oracle = oracle
+        self.dirichlet_noise = dirichlet_noise
 
-    def reset(self, root: StateNode) -> None:
+    def reset(self, root: StateNode, observation: MCTSObservation) -> None:
+        self.root = root
         self.state_node = root
         self.action_node = None
+        self.root_priors = self._get_root_priors(observation)
 
     def __call__(
         self,
@@ -90,7 +107,11 @@ class PUCBPolicy:
         return action, self.state_node, self.action_node
 
     def _pucb_choice(self, observation: MCTSObservation) -> Action:
-        priors = self.oracle.get_probabilities(observation, observation.legal_mask)
+        priors = (
+            self.root_priors
+            if self.state_node is self.root and self.root_priors is not None
+            else self.oracle.get_probabilities(observation, observation.legal_mask)
+        )
         return max(
             self.state_node.actions.items(),
             key = lambda x: self._compute_pucb(x[1], priors[x[0]])
@@ -103,6 +124,24 @@ class PUCBPolicy:
             (math.sqrt(self.state_node.visits + 1) / (action_node.visits + 1))
         )
 
+    def _get_root_priors(self, observation: MCTSObservation) -> np.ndarray | None:
+        if self.dirichlet_noise.alpha <= 0.0 or self.dirichlet_noise.weight <= 0.0:
+            return None
+
+        priors = np.array(
+            self.oracle.get_probabilities(observation, observation.legal_mask),
+            dtype = float
+        )
+        legal_actions = np.flatnonzero(observation.legal_mask)
+        dirichlet_noise = np.random.dirichlet(
+            np.full(len(legal_actions), self.dirichlet_noise.alpha, dtype = float)
+        )
+        priors[legal_actions] = (
+            (1.0 - self.dirichlet_noise.weight) * priors[legal_actions] +
+            self.dirichlet_noise.weight * dirichlet_noise
+        )
+        return priors
+
 
 @dataclass
 class MCTSConfiguration:
@@ -110,6 +149,8 @@ class MCTSConfiguration:
     pucb_constant: float = 1.0
     discount_factor: float = 1.0
     temperature: float = 1.0
+    dirichlet_alpha: float = 0.0
+    dirichlet_weight: float = 0.0
 
 
 class MCTSPolicy(Generic[Player]):
@@ -121,7 +162,14 @@ class MCTSPolicy(Generic[Player]):
         mcts: MCTSConfiguration
     ):
         self.game = game
-        self.pucb_policy = PUCBPolicy(mcts.pucb_constant, oracle)
+        self.pucb_policy = PUCBPolicy(
+            mcts.pucb_constant,
+            oracle,
+            dirichlet_noise = DirichletNoise(
+                alpha = mcts.dirichlet_alpha,
+                weight = mcts.dirichlet_weight
+            )
+        )
         self.oracle = oracle
         self.discount_factor = mcts.discount_factor
         self.number_of_simulations = mcts.number_of_simulations
@@ -150,7 +198,8 @@ class MCTSPolicy(Generic[Player]):
 
     def _run_once_from_state(self, state: TurnBasedState, root: StateNode) -> None:
         buffers: dict[Player, list] = {p: [] for p in self.perspectives}
-        self.pucb_policy.reset(root)
+        root_observation = self.perspectives[state.active_player].get_observation(state)
+        self.pucb_policy.reset(root, root_observation)
         while not state.is_final:
             observation = self.perspectives[state.active_player].get_observation(state)
             action_space = self.perspectives[state.active_player].get_action_space(state)
@@ -162,7 +211,6 @@ class MCTSPolicy(Generic[Player]):
 
         last_payoffs = self._get_last_payoffs(state)
         self._update_nodes(buffers, last_payoffs)
-
     def _update_nodes(self, buffers: dict[Player, list], last_payoffs: dict[Player, float]):
         for (p, buffer) in buffers.items():
             cumulated_payoff = last_payoffs[p]
