@@ -153,9 +153,9 @@ class MCTSPolicy(Generic[Player]):
             action_space = self.perspectives[state.active_player].get_action_space(state)
             action, state_node, action_node = self.pucb_policy(observation, action_space)
             buffers[state.active_player].append((observation.payoff, state_node, action_node))
+            state = self.game.update(state, action)
             if action_node.visits == 0:
                 break
-            state = self.game.update(state, action)
 
         last_payoffs = self._get_last_payoffs(state)
         self._update_nodes(buffers, last_payoffs)

@@ -82,3 +82,42 @@ def test_mcts_run(tic_tac_toe: tuple[MCTSGame, Oracle], policy: MCTSPolicy):
         }
     )
     game_loop.run()
+
+
+class FirstMoveOracle(Oracle):
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        return (1.0,) + (0.0,) * 8  # always choose the first move
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        if len(observation.action_space) == 9:  # initial state
+            return -1.0
+        return 1.0  # later states
+
+
+@pytest.mark.quick
+def test_mcts_prefers_first_move_after_two_simulations(tic_tac_toe: tuple[MCTSGame, Oracle]):
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = FirstMoveOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0,
+            temperature = 1.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    _, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 1.0
+    )
+
+    assert probabilities[0] == pytest.approx(1.0)
+    assert probabilities[1:].sum() == pytest.approx(0.0)
