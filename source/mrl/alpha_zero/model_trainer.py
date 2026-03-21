@@ -64,23 +64,22 @@ class HDF5Dataset(Dataset):
 class Loss:
 
     def __init__(self):
-        self.value_loss = 0.0
-        self.policy_loss = 0.0
+        self.value_loss_sum = 0.0
+        self.policy_loss_sum = 0.0
         self.count = 0
 
     def add(self, value_loss, policy_loss, batch_size):
-        final_count = self.count + batch_size
-        self.value_loss = ((self.value_loss * self.count) + value_loss) / final_count
-        self.policy_loss = ((self.policy_loss * self.count) + policy_loss) / final_count
-        self.count = final_count
+        self.value_loss_sum += value_loss * batch_size
+        self.policy_loss_sum += policy_loss * batch_size
+        self.count += batch_size
 
     @property
     def mean_value_loss(self):
-        return self.value_loss / self.count
+        return self.value_loss_sum / self.count
 
     @property
     def mean_policy_loss(self):
-        return self.policy_loss / self.count
+        return self.policy_loss_sum / self.count
 
     @property
     def mean_loss(self):
