@@ -67,6 +67,11 @@ def configuration(specification: Specification) -> AlphaZeroConfiguration:
                 nn_depth: 3
                 nn_width: 3
             file_path: {specification.model_file}
+        evaluation:
+            episodes: 10
+            max_old_models: 10
+            policy:
+                name: DeterministicOraclePolicy
         collector:
             number_of_processes: {specification.number_of_processes}
             mcts:
@@ -91,8 +96,6 @@ def configuration(specification: Specification) -> AlphaZeroConfiguration:
                 - [0.25, 0.75]
                 - [0.75, 2.00]
         number_of_epochs: 2
-        evaluation_episodes: 10
-        max_old_models: 10
         config_file_path: {specification.config_file}
         hdf5_path_prefix: {specification.data_file_prefix}
         server_hostname: 127.0.0.1

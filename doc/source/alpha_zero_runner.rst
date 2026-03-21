@@ -75,8 +75,11 @@ individual sections are described below.
            - [0.25, 0.75]
            - [0.75, +inf]
    number_of_epochs: 1
-   evaluation_episodes: 100
-   max_old_models: 10
+   evaluation:
+       episodes: 100
+       max_old_models: 10
+       policy:
+           name: DeterministicOraclePolicy
    hdf5_path_prefix: tic_tac_toe_data
    server_hostname: 127.0.0.1
    server_port: 8888
@@ -325,8 +328,14 @@ also written to this directory.
 
 .. code:: yaml
 
-   evaluation_episodes: 100
-   max_old_models: 10
+   evaluation:
+       episodes: 100
+       max_old_models: 10
+       policy:
+           name: DeterministicOraclePolicy
+
+This section defines how newly trained models are compared against older
+saved models.
 
 The model is updated at every epoch. To prevent performance regression,
 each new model is evaluated against previously saved models. If the new
@@ -339,13 +348,22 @@ best at some point during training. Each older model is saved as
 <oracle_file_path>_old_<numeric_id> and remains available for testing
 after training is complete.
 
--  ``evaluation_episodes``: Specifies the number of games played between
-   the new model and each older model during evaluation.
+-  ``episodes``: number of games played between the new model and each
+   older model during evaluation.
+-  ``max_old_models``: maximum number of older best models retained for
+   future comparisons.
+-  ``policy``: policy used when the candidate and incumbent models are
+   compared.
 
--  ``max_old_models``: Defines the maximum number of older models
-   retained for evaluation. If this limit is exceeded, the least
-   relevant models are discarded so that only the top max_old_models
-   previous models are kept.
+The policy is configurable because model quality is relative to the
+policy used to turn the model into actions. A model that performs better
+for one policy is not guaranteed to perform better for another. This can
+happen not only when comparing direct oracle play with MCTS-based play,
+but also when comparing two MCTS policies with different numbers of
+simulations.
+
+In practice, the evaluation policy should match the policy you expect to
+use when the model is deployed.
 
 ************************
  HDF5 specific settings

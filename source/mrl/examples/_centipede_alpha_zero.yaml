@@ -39,8 +39,11 @@ report_generator:
         - [0.60, 0.80]
         - [0.80, +inf]
 number_of_epochs: 1
-evaluation_episodes: 100
-max_old_models: 10
+evaluation:
+    episodes: 100
+    max_old_models: 10
+    policy:
+        name: DeterministicOraclePolicy
 hdf5_path_prefix: centipede_data
 server_hostname: 127.0.0.1
 server_port: 8888

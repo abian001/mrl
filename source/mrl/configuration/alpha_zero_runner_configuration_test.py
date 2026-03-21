@@ -44,8 +44,6 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
             loss_observer: null
             learning_rate: 1e-3
             loading_workers: 1
-        evaluation_episodes: 10
-        max_old_models: 5
         report_generator:
             oracle_led_players: ['X']
             number_of_tests: 10
@@ -62,6 +60,11 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
                     pucb_constant: 1.0
                     discount_factor: 1.0
         number_of_epochs: 10 
+        evaluation:
+            episodes: 10
+            max_old_models: 5
+            policy:
+                name: DeterministicOraclePolicy
         hdf5_path_prefix: data_file
         server_hostname: 127.0.0.1
         server_port: 8888

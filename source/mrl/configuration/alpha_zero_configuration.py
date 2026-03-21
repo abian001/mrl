@@ -50,6 +50,12 @@ class ModelTestConfiguration(BaseModel):
         return [[x[0], x[1]] for x in buckets]
 
 
+class EvaluationConfiguration(BaseModel):
+    episodes: int
+    max_old_models: int
+    policy_data: dict = Field(alias = 'policy')
+
+
 class OutputSize(BaseModel):
     output_size: int | None = None
 
@@ -80,8 +86,7 @@ class _BaseAlphaZeroConfiguration(BaseModel):
     report_generator: ModelTestConfiguration
     config_file_path: Path
     workspace_path: Path = Field(default = Path("workspace"))
-    evaluation_episodes: int
-    max_old_models: int
+    evaluation: EvaluationConfiguration
     _game: MCTSGame | None = PrivateAttr(default = None)
     _oracle_config: OracleConfiguration | None = PrivateAttr(default = None)
     _oracle: Oracle | None = PrivateAttr(default = None)

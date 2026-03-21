@@ -3,8 +3,8 @@ import shutil
 import numpy as np
 from mrl.game.game import GlobalObserver
 from mrl.game.game_loop import make_game_loop
-from mrl.alpha_zero.oracle import DeterministicOraclePolicy
 from mrl.alpha_zero.mcts import MCTSGame
+from mrl.configuration.game_factories import make_policy
 from mrl.configuration.alpha_zero_configuration import (
     UnionAlphaZeroConfiguration,
     make_new_oracle_clone
@@ -15,12 +15,11 @@ class ModelUpdater:
 
     def __init__(self, game: MCTSGame, config: UnionAlphaZeroConfiguration):
         self.game = game
-        self.evaluation_episodes = config.evaluation_episodes
+        self.evaluation = config.evaluation
         self.model_path = config.oracle_file_path
         self.clone_model = make_new_oracle_clone(config)
         self.old_models: list[str] = self._get_old_models()
         self.scores: dict[str, ScoreTracker] = {}
-        self.max_old_models = config.max_old_models
 
     def save_if_better(self, model):
         is_best, scores, new_scores = self._evaluate(model)
@@ -32,7 +31,7 @@ class ModelUpdater:
             shutil.move(self.model_path, old_path)
             model.save(self.model_path)
 
-        while len(self.old_models) > self.max_old_models:
+        while len(self.old_models) > self.evaluation.max_old_models:
             self._remove_oldest_model()
         return is_best
 
@@ -41,7 +40,7 @@ class ModelUpdater:
         new_scores = ScoreTracker()
         for file_path in self.old_models:
             self.clone_model.load(file_path)
-            for _ in range((self.evaluation_episodes // 2) + 1):
+            for _ in range((self.evaluation.episodes // 2) + 1):
                 payoff_1 = self._evaluate_once(model, self.clone_model)
                 payoff_2 = self._evaluate_once(self.clone_model, model)
                 scores[file_path].append(payoff_2)
@@ -54,8 +53,8 @@ class ModelUpdater:
         return is_best, scores, new_scores
 
     def _evaluate_once(self, lead, opponent):
-        policy = DeterministicOraclePolicy(lead)
-        opponent = DeterministicOraclePolicy(opponent)
+        policy = self._make_evaluation_policy(lead)
+        opponent = self._make_evaluation_policy(opponent)
         perspectives = self.game.get_perspectives()
         policy_player = np.random.choice(list(perspectives.keys()))
         score_observer = ScoreObserver(perspectives[policy_player])
@@ -69,6 +68,12 @@ class ModelUpdater:
         )
         game_loop.run()
         return score_observer.get_payoff()
+
+    def _make_evaluation_policy(self, oracle):
+        return make_policy(self.evaluation.policy_data | {
+            'game': self.game,
+            'oracle': oracle
+        })
 
     def _get_old_models(self) -> list[str]:
         if not self.model_path.parent.exists():

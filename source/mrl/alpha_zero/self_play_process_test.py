@@ -45,6 +45,11 @@ def configuration(
                 nn_depth: 3
                 nn_width: 3
             file_path: self_play_test
+        evaluation:
+            episodes: 10
+            max_old_models: 2
+            policy:
+                name: DeterministicOraclePolicy
         collector:
             number_of_processes: 1
             mcts:
@@ -69,8 +74,6 @@ def configuration(
                 - [0.25, 0.75]
                 - [0.75, 2.00]
         number_of_epochs: {number_of_epochs}
-        evaluation_episodes: 10
-        max_old_models: 2
         config_file_path: test_config.json
         hdf5_path_prefix: test_data
         server_hostname: 127.0.0.1

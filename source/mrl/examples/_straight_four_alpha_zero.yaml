@@ -36,8 +36,11 @@ report_generator:
         - [0.25, 0.75]
         - [0.75, +inf]
 number_of_epochs: 1
-max_old_models: 5
-evaluation_episodes: 10
+evaluation:
+    episodes: 10
+    max_old_models: 5
+    policy:
+        name: DeterministicOraclePolicy
 hdf5_path_prefix: straight_four_data
 server_hostname: 127.0.0.1
 server_port: 8888
