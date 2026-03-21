@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import pytest
 import numpy as np
+import torch
 from mrl.alpha_zero.models import (
     OpenSpielMLP,
     OpenSpielConv,
@@ -166,6 +167,31 @@ def _run_test(test_data: TestData):
         expected = pytest.approx(test_data.expected_full_probabilities, abs = 0.01)
         assert full_probabilities == expected
     assert legal_probabilities == pytest.approx(test_data.expected_legal_probabilities, abs = 0.01)
+
+
+@pytest.mark.quick
+def test_inference_helpers_disable_gradients_and_use_model_device() -> None:
+    model = OpenSpielMLP(MLPCapacity(
+        input_size = 1,
+        output_size = 2,
+        nn_width = 1,
+        nn_depth = 1
+    ))
+    observation = ObservationMock(np.array((0.5,)))
+    expected_device = next(model.parameters()).device
+    original_forward = model.torso.forward
+    calls: list[tuple[bool, str]] = []
+
+    def wrapped_forward(x: torch.Tensor) -> torch.Tensor:
+        calls.append((torch.is_grad_enabled(), str(x.device)))
+        return original_forward(x)
+
+    model.torso.forward = wrapped_forward
+
+    model.get_value(observation)
+    model.get_probabilities(observation, (True, False))
+
+    assert calls == [(False, str(expected_device)), (False, str(expected_device))]
 
 
 class ObservationMock:

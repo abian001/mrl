@@ -41,7 +41,7 @@ class OracleMixin(Oracle):
         super().__init__()
         self.input_shape = input_shape
         self.input_size = math.prod(input_shape)
-        self.full_mask = torch.ones((output_size,), dtype = torch.bool)
+        self.output_size = output_size
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         shape = (x.numel() // self.input_size,) + self.input_shape
@@ -51,30 +51,48 @@ class OracleMixin(Oracle):
         return value_out.squeeze(-1), policy_logits
 
     def get_value(self, observation: HasCore) -> float:
-        shape = (1,) + self.input_shape
-        x = torch.tensor(observation.core.reshape(shape), dtype = torch.float32)
-        torso_out = self.torso(x)
-        return self.value_head(torso_out).item()
+        with torch.inference_mode():
+            x = self._make_input_tensor(observation)
+            torso_out = self.torso(x)
+            return self.value_head(torso_out).item()
 
     def get_probabilities(
         self,
         observation: HasCore,
         legal_mask: LegalMask | None = None
     ) -> Probabilities:
-        if legal_mask is None:
-            _legal_mask = self.full_mask
-        else:
-            _legal_mask = torch.tensor(legal_mask, dtype = torch.bool)
+        with torch.inference_mode():
+            x = self._make_input_tensor(observation)
+            torso_out = self.torso(x)
+            policy_logits = self.policy_head(torso_out)
+            torch_legal_mask = self._get_legal_mask_tensor(legal_mask)
+            masked_logits = torch.where(
+                torch_legal_mask,
+                policy_logits,
+                torch.full_like(policy_logits, -1e32)
+            )
+            probabilities = torch.nn.functional.softmax(masked_logits, dim = -1)
+            return probabilities.cpu().numpy()[0]
+
+    def _make_input_tensor(self, observation: HasCore) -> torch.Tensor:
         shape = (1,) + self.input_shape
-        x = torch.tensor(observation.core.reshape(shape), dtype = torch.float32)
-        torso_out = self.torso(x)
-        policy_logits = self.policy_head(torso_out)
-        masked_logits = torch.where(
-            _legal_mask,
-            policy_logits,
-            torch.full_like(policy_logits, -1e32)
+        return torch.as_tensor(
+            observation.core,
+            dtype = torch.float32,
+            device = self._get_device()
+        ).reshape(shape)
+
+    def _get_legal_mask_tensor(self, legal_mask: LegalMask | None) -> torch.Tensor:
+        if legal_mask is None:
+            return torch.ones((self.output_size,), dtype = torch.bool, device = self._get_device())
+        return torch.as_tensor(
+            legal_mask,
+            dtype = torch.bool,
+            device = self._get_device()
         )
-        return torch.nn.functional.softmax(masked_logits, dim = -1).detach().numpy()[0]
+
+    def _get_device(self) -> torch.device:
+        return next(self.torso.parameters()).device
 
 
 @dataclass
