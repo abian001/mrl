@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Literal, Union, Annotated
+from typing import Any, Literal, Union, Annotated, cast
 import yaml
 from pydantic import (
     BaseModel,
@@ -8,8 +8,9 @@ from pydantic import (
     field_serializer,
     PrivateAttr
 )
-from mrl.configuration.gui_factory import make_gui
+from mrl.configuration.factory import ObjectConfiguration
 from mrl.configuration.player_utils import validate_player
+from mrl.configuration.gui_factory import make_gui
 from mrl.configuration.mcts_factories import make_oracle, make_mcts_game
 from mrl.tkinter_gui.gui import Gui
 from mrl.alpha_zero.experience_collector import CollectorConfiguration
@@ -37,16 +38,16 @@ class ModelTestConfiguration(BaseModel):
 class EvaluationConfiguration(BaseModel):
     episodes: int
     max_old_models: int
-    policy_data: dict = Field(alias = 'policy')
+    policy_configuration: ObjectConfiguration = Field(alias = 'policy')
 
 
-class OutputSize(BaseModel):
+class CapacityConfiguration(BaseModel, extra = 'allow'):
     output_size: int | None = None
 
 
-class OracleConfiguration(BaseModel):
+class OracleConfiguration(ObjectConfiguration):
     file_path: Path
-    capacity: OutputSize | None = None
+    capacity: CapacityConfiguration | None = None
     base_output_size: int | None = Field(alias = 'output_size', default = None)
 
     @field_serializer("file_path")
@@ -61,9 +62,9 @@ class OracleConfiguration(BaseModel):
 
 
 class _BaseAlphaZeroConfiguration(BaseModel):
-    game_data: dict = Field(alias = 'game')
-    oracle_data: dict = Field(alias = 'oracle')
-    gui_data: dict = Field(alias = 'gui', default_factory = dict)
+    game_configuration: ObjectConfiguration = Field(alias = 'game')
+    oracle_configuration: OracleConfiguration = Field(alias = 'oracle')
+    gui_configuration: ObjectConfiguration | None = Field(alias = 'gui', default = None)
     trainer: ModelTrainerConfiguration
     collector: CollectorConfiguration
     number_of_epochs: int
@@ -72,14 +73,13 @@ class _BaseAlphaZeroConfiguration(BaseModel):
     workspace_path: Path = Field(default = Path("workspace"))
     evaluation: EvaluationConfiguration
     _game: MCTSGame | None = PrivateAttr(default = None)
-    _oracle_config: OracleConfiguration | None = PrivateAttr(default = None)
     _oracle: Oracle | None = PrivateAttr(default = None)
     _gui: Gui | None = PrivateAttr(default = None)
 
     @property
     def game(self):
         if self._game is None:
-            self._game = make_mcts_game(self.game_data)
+            self._game = make_mcts_game(self.game_configuration)
             if not isinstance(self._game, MCTSGame):
                 raise TypeError(
                     f'Game class {type(self._game)} is not an mcts game. '
@@ -90,7 +90,10 @@ class _BaseAlphaZeroConfiguration(BaseModel):
     @property
     def oracle(self):
         if self._oracle is None:
-            self._oracle = make_oracle(self.oracle_data | {'game': self.game})
+            self._oracle = make_oracle(
+                self.oracle_configuration,
+                extra_arguments = {'game': self.game}
+            )
             if not isinstance(self._oracle, Oracle):
                 raise TypeError(
                     f'Oracle class {type(self._oracle)} is not a valid oracle '
@@ -98,22 +101,20 @@ class _BaseAlphaZeroConfiguration(BaseModel):
                 )
         return self._oracle
 
-    @property
-    def oracle_config(self) -> OracleConfiguration:
-        if self._oracle_config is None:
-            self._oracle_config = OracleConfiguration.model_validate(self.oracle_data)
-        return self._oracle_config
+    def _get_oracle_configuration(self) -> OracleConfiguration:
+        return cast(OracleConfiguration, self.oracle_configuration)
 
     @property
     def oracle_file_path(self) -> Path:
-        if self.oracle_config.file_path.is_absolute():
-            return self.oracle_config.file_path
-        return self.workspace_path / self.oracle_config.file_path
+        oracle_configuration = self._get_oracle_configuration()
+        if oracle_configuration.file_path.is_absolute():
+            return oracle_configuration.file_path
+        return self.workspace_path / oracle_configuration.file_path
 
     @property
     def gui(self) -> Gui:
         if self._gui is None:
-            self._gui = make_gui(self.game_data, self.gui_data)
+            self._gui = make_gui(self.game_configuration, self.gui_configuration)
         return self._gui
 
     def save(self, file_path: str | None = None):
@@ -154,18 +155,19 @@ class _BaseAlphaZeroConfiguration(BaseModel):
                 'space sizes. This implementation of alpha zero only '
                 'supports games whose perspectives have the same action space.'
             )
-        output_size = self.oracle_config.output_size
+        oracle_configuration = self._get_oracle_configuration()
+        output_size = oracle_configuration.output_size
         if output_size is not None and any_perspective.action_space_dimension != output_size:
             raise TypeError(
                 'Mismatched output sizes between the game and the model. The game '
                 f'output space size is {any_perspective.action_space_dimension}. '
-                f'The model output size is {self.oracle_config.output_size}.'
+                f'The model output size is {output_size}.'
             )
         return self
 
 
 def make_new_oracle_clone(config: _BaseAlphaZeroConfiguration) -> Oracle:
-    return make_oracle(config.oracle_data | {'game': config.game})
+    return make_oracle(config.oracle_configuration, extra_arguments = {'game': config.game})
 
 
 class HDF5AlphaZeroConfiguration(_BaseAlphaZeroConfiguration):

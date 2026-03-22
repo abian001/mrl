@@ -2,6 +2,7 @@ from typing import Generic
 from abc import ABC, abstractmethod
 from functools import partial
 import tkinter as tk
+from mrl.configuration.factory import ObjectConfiguration
 from mrl.game.game import Action as ActionType
 from mrl.xiangqi.game import Role, Player, _token_to_string, Action, BaseState
 from mrl.xiangqi.enumerable_game import (
@@ -12,8 +13,8 @@ from mrl.xiangqi.mcts_game import MCTSXiangqi
 from mrl.tkinter_gui.gui import View, Model, Gui, Event
 
 
-def make_gui(game_data: dict):
-    model = XiangqiModel(game_data, _help_text)
+def make_gui(game_configuration: ObjectConfiguration):
+    model = XiangqiModel(game_configuration, _help_text)
     gui = Gui(model)
 
     gui.add_view(XiangqiView(gui))
@@ -101,7 +102,7 @@ class XiangqiView(View):
         self.status_label.grid(row=10, column=0, columnspan=9)
 
     def _create_controller(self, gui: Gui):
-        if self.model.game_data.get('name') == MCTSXiangqi.__name__:
+        if self.model.game_configuration.name == MCTSXiangqi.__name__:
             return MCTSXiangqiController(gui)
         return XiangqiController(gui)
 

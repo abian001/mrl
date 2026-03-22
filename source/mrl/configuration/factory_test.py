@@ -1,7 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
 import pytest
-from mrl.configuration.factory import make_object
+from mrl.configuration.factory import ObjectConfiguration, make_object
 from mrl.configuration.gui_factory import make_gui
 from mrl.tkinter_gui.gui import Gui
 
@@ -52,23 +52,27 @@ class ObjectWithParameters:
 @pytest.mark.parametrize('object_class', [ObjectWithNoConstructor, ObjectWithNoParameters])
 @pytest.mark.quick
 def test_make_game(object_class: type):
-    instance = make_object({
-        'name': object_class.__name__,
-        'module': 'mrl.configuration.factory_test'
-    })
+    instance = make_object(
+        ObjectConfiguration(
+            name = object_class.__name__,
+            module = 'mrl.configuration.factory_test'
+        )
+    )
     assert isinstance(instance, object_class)
 
 
 @pytest.mark.quick
 def test_make_game_with_configuration():
-    instance = make_object({
-        'name': 'ObjectWithConfiguration',
-        'module': 'mrl.configuration.factory_test',
-        'config': {
-            'test_value': '3',
-            'first_player': 'red'
-        }
-    })
+    instance = make_object(
+        ObjectConfiguration.model_validate({
+            'name': 'ObjectWithConfiguration',
+            'module': 'mrl.configuration.factory_test',
+            'config': {
+                'test_value': '3',
+                'first_player': 'red'
+            }
+        })
+    )
     assert isinstance(instance, ObjectWithConfiguration)
     assert instance.config.test_value == 3
     assert instance.config.first_player == Player.RED
@@ -76,12 +80,14 @@ def test_make_game_with_configuration():
 
 @pytest.mark.quick
 def test_make_game_with_parameters():
-    instance = make_object({
-        'name': 'ObjectWithParameters',
-        'module': 'mrl.configuration.factory_test',
-        'test_value': '2',
-        'second_player': 'black'
-    })
+    instance = make_object(
+        ObjectConfiguration.model_validate({
+            'name': 'ObjectWithParameters',
+            'module': 'mrl.configuration.factory_test',
+            'test_value': '2',
+            'second_player': 'black'
+        })
+    )
     assert isinstance(instance, ObjectWithParameters)
     assert instance.test_value == 2
     assert instance.first_player == Player.BLACK
@@ -92,10 +98,12 @@ def test_make_game_with_parameters():
 @pytest.mark.quick
 def test_import_error(module: str):
     with pytest.raises(TypeError) as error:
-        make_object({
-            'name': 'Missing',
-            'module': module
-        })
+        make_object(
+            ObjectConfiguration(
+                name = 'Missing',
+                module = module
+            )
+        )
     if module == 'missing_module':
         specific_error = f"\"No module named '{module}'\""
     else:
@@ -109,9 +117,7 @@ def test_import_error(module: str):
 @pytest.mark.quick
 def test_import_predefined_error():
     with pytest.raises(TypeError) as error:
-        make_object({
-            'name': 'Missing'
-        })
+        make_object(ObjectConfiguration(name = 'Missing'))
     assert str(error.value) == (
         'No predefined module available for object Missing. '
         'Did you forget to include a "module" field in the configuration?'
@@ -120,46 +126,46 @@ def test_import_predefined_error():
 
 class TestGui(Gui):
 
-    def __init__(self, game_data: dict):  # pylint: disable=super-init-not-called
-        self.game_data = game_data
+    def __init__(self, game_configuration: ObjectConfiguration):  # pylint: disable=super-init-not-called
+        self.game_configuration = game_configuration
 
 
 @pytest.mark.quick
 def test_make_gui():
-    game_data = {
-        'name': 'ObjectWithNoConstructor',
-        'module': 'mrl.configuration.factory_test'
-    }
-    instance = make_gui(
-        game_data = game_data,
-        gui_data = {
-            'name': 'TestGui',
-            'module': 'mrl.configuration.factory_test'
-        }
+    game_configuration = ObjectConfiguration(
+        name = 'ObjectWithNoConstructor',
+        module = 'mrl.configuration.factory_test'
     )
-    assert instance.game_data == game_data
+    instance = make_gui(
+        game_configuration = game_configuration,
+        gui_configuration = ObjectConfiguration(
+            name = 'TestGui',
+            module = 'mrl.configuration.factory_test'
+        )
+    )
+    assert instance.game_configuration == game_configuration
 
 
-def _make_bad_gui(game_data: dict) -> dict:
-    return game_data
+def _make_bad_gui(game_configuration: ObjectConfiguration) -> ObjectConfiguration:
+    return game_configuration
 
 
 @pytest.mark.quick
 def test_make_bad_gui():
-    game_data = {
-        'name': 'ObjectWithNoConstructor',
-        'module': 'mrl.configuration.factory_test'
-    }
+    game_configuration = ObjectConfiguration(
+        name = 'ObjectWithNoConstructor',
+        module = 'mrl.configuration.factory_test'
+    )
     with pytest.raises(TypeError) as error:
         make_gui(
-            game_data = game_data,
-            gui_data = {
-                'name': '_make_bad_gui',
-                'module': 'mrl.configuration.factory_test'
-            }
+            game_configuration = game_configuration,
+            gui_configuration = ObjectConfiguration(
+                name = '_make_bad_gui',
+                module = 'mrl.configuration.factory_test'
+            )
         )
     assert str(error.value) == (
-        "Invalid gui class <class 'dict'>. "
+        "Invalid gui class <class 'mrl.configuration.factory.ObjectConfiguration'>. "
         "Gui classes should derive from tkinter_gui.gui.Gui."
     )
 
@@ -167,17 +173,17 @@ def test_make_bad_gui():
 @pytest.mark.parametrize('module', ['missing_module', 'mrl.configuration.factory_test'])
 @pytest.mark.quick
 def test_import_gui_error(module: str):
-    game_data = {
-        'name': 'ObjectWithNoConstructor',
-        'module': 'mrl.configuration.factory_test'
-    }
+    game_configuration = ObjectConfiguration(
+        name = 'ObjectWithNoConstructor',
+        module = 'mrl.configuration.factory_test'
+    )
     with pytest.raises(TypeError) as error:
         make_gui(
-            game_data = game_data,
-            gui_data = {
-                'name': 'Missing',
-                'module': module
-            }
+            game_configuration = game_configuration,
+            gui_configuration = ObjectConfiguration(
+                name = 'Missing',
+                module = module
+            )
         )
     if module == 'missing_module':
         specific_error = f"\"No module named '{module}'\""
@@ -191,16 +197,14 @@ def test_import_gui_error(module: str):
 
 @pytest.mark.quick
 def test_import_gui_no_module_error():
-    game_data = {
-        'name': 'ObjectWithNoConstructor',
-        'module': 'mrl.configuration.factory_test'
-    }
+    game_configuration = ObjectConfiguration(
+        name = 'ObjectWithNoConstructor',
+        module = 'mrl.configuration.factory_test'
+    )
     with pytest.raises(TypeError) as error:
         make_gui(
-            game_data = game_data,
-            gui_data = {
-                'name': 'Missing'
-            }
+            game_configuration = game_configuration,
+            gui_configuration = ObjectConfiguration(name = 'Missing')
         )
     assert str(error.value) == (
         'No predefined module available for object Missing. '
@@ -210,13 +214,13 @@ def test_import_gui_no_module_error():
 
 @pytest.mark.quick
 def test_import_gui_game_error():
-    game_data = {
-        'name': 'Missing',
-        'module': 'mrl.configuration.factory_test'
-    }
+    game_configuration = ObjectConfiguration(
+        name = 'Missing',
+        module = 'mrl.configuration.factory_test'
+    )
     with pytest.raises(TypeError) as error:
         make_gui(
-            game_data = game_data,
-            gui_data = None
+            game_configuration = game_configuration,
+            gui_configuration = None
         )
     assert str(error.value) == "No predefined gui for game Missing."

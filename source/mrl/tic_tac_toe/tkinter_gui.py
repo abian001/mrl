@@ -1,6 +1,7 @@
 from functools import partial
 import tkinter as tk
 import tkinter.font as tkfont
+from mrl.configuration.factory import ObjectConfiguration
 from mrl.tkinter_gui.gui import (
     Gui,
     View,
@@ -16,8 +17,8 @@ from mrl.tic_tac_toe.game import (
 )
 
 
-def make_gui(game_data: dict):
-    model: Model[Player] = Model(game_data, _help_text)
+def make_gui(game_configuration: ObjectConfiguration):
+    model: Model[Player] = Model(game_configuration, _help_text)
     gui = Gui(model)
 
     gui.add_view(TicTacToeView(gui))
@@ -85,11 +86,20 @@ class TicTacToeView(View):
 
 class SettingsController:
 
-    def __init__(self, model):
+    def __init__(self, model, observer):
         self.model = model
+        self.observer = observer
 
     def save_settings(self, settings_window, dropdown):
-        self.model.game_data['first_player'] = dropdown.get_choice()
+        configuration_data = self.model.game_configuration.to_data()
+        try:
+            game_configuration = ObjectConfiguration.model_validate(
+                configuration_data | {'first_player': dropdown.get_choice()}
+            )
+        except Exception as error:  # pylint: disable=broad-exception-caught
+            self.observer.notify_message(f"Invalid settings: {error}")
+        else:
+            self.model.game_configuration = game_configuration
         settings_window.destroy()
 
     def close_settings(self, settings_window):
@@ -101,7 +111,7 @@ class TicTacToeSettings(SettingsView):
     def __init__(self, gui):
         self.model = gui.model
         self.root = gui.tk_root
-        self.controller = SettingsController(self.model)
+        self.controller = SettingsController(self.model, gui.observer)
 
     def create_settings(self):
         font = tkfont.Font(family = "Helvetica", size = 12)
@@ -109,12 +119,12 @@ class TicTacToeSettings(SettingsView):
         window.title("Settings")
         window.geometry("500x300")
 
-        data = self.model.game_data
+        configuration_data = self.model.game_configuration.to_data()
         dropdown = SingleChoiceDropdown(
             tk_parent = window,
             label = "first player",
             choices = (str(Player.X), str(Player.O), "random"),
-            default = data["first_player"],
+            default = configuration_data["first_player"],
             font = font
         )
         dropdown.pack(pady = 20)

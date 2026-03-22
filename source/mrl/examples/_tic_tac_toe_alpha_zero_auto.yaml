@@ -11,7 +11,7 @@ policies:
                 output_size: 9
                 nn_depth: 2
                 nn_width: 2
-            file_path: tic_tac_toe_alpha_zero
+            file_path: test_workspace/tic_tac_toe_alpha_zero
     O:
         name: 'StochasticOraclePolicy'
         oracle:
@@ -21,7 +21,7 @@ policies:
                 output_size: 9
                 nn_depth: 2
                 nn_width: 2
-            file_path: tic_tac_toe_alpha_zero
+            file_path: test_workspace/tic_tac_toe_alpha_zero
 evaluation:
     observed_players: ['O']
     number_of_tests: 100

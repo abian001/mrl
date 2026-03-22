@@ -118,6 +118,9 @@ def test_gui(configuration: dict, monkeypatch: pytest.MonkeyPatch):
         def __init__(self):  # pylint: disable=super-init-not-called
             pass
 
-    monkeypatch.setattr('mrl.tic_tac_toe.tkinter_gui.make_gui', lambda game_data: MockGui())
+    monkeypatch.setattr(
+        'mrl.tic_tac_toe.tkinter_gui.make_gui',
+        lambda game_configuration: MockGui()
+    )
     config = make_alpha_zero_runner_specification(configuration)
     assert isinstance(config.gui, Gui)

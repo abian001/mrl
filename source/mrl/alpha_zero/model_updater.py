@@ -75,10 +75,13 @@ class ModelUpdater:
         return score_observer.get_payoff()
 
     def _make_evaluation_policy(self, oracle):
-        return make_policy(self.evaluation.policy_data | {
-            'game': self.game,
-            'oracle': oracle
-        })
+        return make_policy(
+            self.evaluation.policy_configuration,
+            extra_arguments = {
+                'game': self.game,
+                'oracle': oracle
+            }
+        )
 
     def _get_old_models(self) -> list[str]:
         if not self.model_path.parent.exists():

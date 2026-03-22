@@ -46,8 +46,6 @@ def configuration() -> dict:
                         output_size: 9
                         nn_depth: 1
                         nn_width: 1
-                    file_path: tic_tac_toe_model
-                    load: false
         """)
 
 

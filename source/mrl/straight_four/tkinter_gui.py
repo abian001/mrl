@@ -1,11 +1,12 @@
 from functools import partial
 import tkinter as tk
+from mrl.configuration.factory import ObjectConfiguration
 from mrl.straight_four.game import Token, Player
 from mrl.tkinter_gui.gui import View, Model, Gui, Event, GameController
 
 
-def make_gui(game_data: dict):
-    model: Model[Player] = Model(game_data, _help_text)
+def make_gui(game_configuration: ObjectConfiguration):
+    model: Model[Player] = Model(game_configuration, _help_text)
     gui = Gui(model)
 
     gui.add_view(StraightFourView(gui))
