@@ -99,9 +99,10 @@ def test_buffer_collector(test_data: CorrectnessTestData):
     collector = make_buffer_collector(game, oracle, test_data.configuration)
     buffer, buffer_ready = collector.collect()
     assert buffer_ready
-    assert tuple(tuple(record[0]) for record in buffer) == test_data.observations
-    assert tuple(tuple(record[1]) for record in buffer) == test_data.probabilities
-    assert tuple(record[2] for record in buffer) == test_data.payoffs
+    records = tuple(buffer[index] for index in range(len(buffer)))
+    assert tuple(tuple(record[0]) for record in records) == test_data.observations
+    assert tuple(tuple(record[1]) for record in records) == test_data.probabilities
+    assert tuple(record[2] for record in records) == test_data.payoffs
 
 
 @dataclass

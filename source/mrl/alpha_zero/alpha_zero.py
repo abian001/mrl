@@ -20,8 +20,6 @@ class AlphaZero:
         game = config.game
 
         self.model = config.oracle
-        if os.path.exists(self.model_path):
-            self.model.load(self.model_path)
 
         if not isinstance(self.model, torch.nn.Module):
             raise TypeError(
@@ -44,8 +42,11 @@ class AlphaZero:
         else:
             self.collector = SingleBufferCollector(game, self.model, config.collector)
 
-    def train(self):
-        self.model.save(self.model_path)
+    def train(self, resume: bool = True):
+        if resume and os.path.exists(self.model_path):
+            self.model.load(self.model_path)
+        else:
+            self.model.save(self.model_path)
         for _ in range(self.number_of_epochs):
             buffer, buffer_ready = self.collector.collect()
             if buffer_ready:

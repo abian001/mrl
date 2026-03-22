@@ -320,6 +320,13 @@ This directory is used to store trained models and temporary data.
 In ``HDF5`` mode, intermediate model versions and training datasets are
 also written to this directory.
 
+The workspace also stores evaluation artifacts:
+
+-  the current best model at ``oracle.file_path``;
+-  older best models at ``<oracle_file_path>_old_<numeric_id>``;
+-  the persisted evaluation scores for those older models at
+   ``<oracle_file_path>_scores.yaml``.
+
 .. _alpha_zero_evaluation:
 
 ************
@@ -345,8 +352,11 @@ older models for future comparisons.
 
 Older models consist of all models that were previously considered the
 best at some point during training. Each older model is saved as
-<oracle_file_path>_old_<numeric_id> and remains available for testing
-after training is complete.
+``<oracle_file_path>_old_<numeric_id>`` and remains available for
+testing after training is complete. The corresponding evaluation scores
+used to compare against those older models are saved in
+``<oracle_file_path>_scores.yaml`` so they can be restored when training
+resumes.
 
 -  ``episodes``: number of games played between the new model and each
    older model during evaluation.

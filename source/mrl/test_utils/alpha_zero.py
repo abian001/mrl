@@ -120,7 +120,7 @@ class AlphaZeroRunner:
                 os.remove(self.config.oracle_file_path)
         if self.mode in (TestMode.TRAIN, TestMode.OVERWRITE, TestMode.RESUME):
             alpha_zero = make_alpha_zero(self.config)
-            self._run_train(alpha_zero)
+            self._run_train(alpha_zero, resume = self.mode == TestMode.RESUME)
 
         elif self.mode == TestMode.EVALUATE:
             self._run_evaluation()
@@ -129,9 +129,9 @@ class AlphaZeroRunner:
         elif self.mode == TestMode.GUI:
             self._run_gui_play()
 
-    def _run_train(self, alpha_zero):
+    def _run_train(self, alpha_zero, resume: bool = False):
         start_time = time.perf_counter()
-        alpha_zero.train()
+        alpha_zero.train(resume = resume)
         end_time = time.perf_counter()
         print(f"Training took {end_time - start_time} seconds")
 

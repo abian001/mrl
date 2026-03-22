@@ -148,11 +148,14 @@ class DistributedAlphaZero:
                 config.report_generator
             )
 
-    def train(self):
-        asyncio.run(self._train())
+    def train(self, resume: bool = True):
+        asyncio.run(self._train(resume))
 
-    async def _train(self):
-        self.model.save(self.config.oracle_file_path)
+    async def _train(self, resume: bool = True):
+        if resume and os.path.exists(self.config.oracle_file_path):
+            self.model.load(self.config.oracle_file_path)
+        else:
+            self.model.save(self.config.oracle_file_path)
         async with ExperienceCollector(self.config) as experience_collector:
             async for file_path in experience_collector.get_files():
                 better_model = self._process_once(file_path)
