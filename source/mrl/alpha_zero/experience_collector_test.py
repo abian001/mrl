@@ -7,7 +7,7 @@ import time
 import h5py
 import pytest
 from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
-from mrl.alpha_zero.mcts import MCTSGame
+from mrl.alpha_zero.mcts import MCTSGame, MCTSConfiguration
 from mrl.alpha_zero.mcts_observation import MCTSObservation
 from mrl.alpha_zero.experience_collector import (
     CollectorConfiguration,
@@ -15,7 +15,6 @@ from mrl.alpha_zero.experience_collector import (
     make_hdf5_collector,
 )
 from mrl.alpha_zero.mcts_test import TestOracle
-from mrl.configuration.alpha_zero_configuration import MCTSConfiguration
 from mrl.xiangqi.mcts_game import MCTSXiangqi
 from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe
 

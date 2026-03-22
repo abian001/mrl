@@ -193,14 +193,14 @@ class DiscreteTimeGameLoop(_GameLoop):
 
 
 def _assert_state_supports_turn_based(game: Game) -> None:
-    _assert_state_implements_protocols(game, (FinalCheckable, HasActivePlayer))
+    _validate_state_implements_protocols(game, (FinalCheckable, HasActivePlayer))
 
 
 def _assert_state_support_discrete_time(game: Game) -> None:
-    _assert_state_implements_protocols(game, (FinalCheckable,))
+    _validate_state_implements_protocols(game, (FinalCheckable,))
 
 
-def _assert_state_implements_protocols(game: Game, protocols: tuple[type, ...]) -> None:
+def _validate_state_implements_protocols(game: Game, protocols: tuple[type, ...]) -> None:
     state_annotation = inspect.signature(game.make_initial_state).return_annotation
     if (
         state_annotation is not inspect.Signature.empty and
@@ -208,18 +208,23 @@ def _assert_state_implements_protocols(game: Game, protocols: tuple[type, ...]) 
     ):
         return
     state = game.make_initial_state()
-    _assert_instance_implements_protocols(state, protocols)
+    _validate_instance_implements_protocols(state, protocols)
 
 
 def _class_implements_protocols(state_class: type, protocols: tuple[type, ...]) -> bool:
     return all(ProtocolChecker.issubclass(state_class, protocol) for protocol in protocols)
 
 
-def _assert_instance_implements_protocols(state_instance: Any, protocols: tuple[type, ...]) -> None:
+def _validate_instance_implements_protocols(
+    state_instance: Any,
+    protocols: tuple[type, ...]
+) -> None:
     for protocol in protocols:
-        assert \
-            ProtocolChecker.isinstance(state_instance, protocol), \
-            f"The state class {type(state_instance)} does not implement the protocol {protocol}"
+        if not ProtocolChecker.isinstance(state_instance, protocol):
+            raise InvalidGame(
+                f"State class {type(state_instance)} does not implement "
+                f"required protocol {protocol.__name__}."
+            )
 
 
 PlayerContra = TypeVar("PlayerContra", contravariant = True)

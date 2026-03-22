@@ -11,7 +11,7 @@ from mrl.configuration.game_runner_configuration import (
     make_game_runner_specification
 )
 from mrl.test_utils.policies import ManualPolicy
-from mrl.test_utils.exit_handler import try_main
+from mrl.test_utils.error_handler import try_main, describe_exception
 from mrl.alpha_zero.mcts_observation import PayoffPerspective
 
 
@@ -76,15 +76,20 @@ def _parse_configuration(path: str) -> GameRunnerSpecification:
             config_data = yaml.safe_load(yaml_file)
     except Exception as error:
         raise argparse.ArgumentTypeError(
-            f'Failed to access the file {path} with error: "{error}".'
+            f'Failed to access the file {path}. {describe_exception(error)}'
         ) from error
+
+    if not isinstance(config_data, dict):
+        raise argparse.ArgumentTypeError(
+            f'Configuration file {path} must contain a YAML mapping at the top level.'
+        )
 
     try:
         return make_game_runner_specification(config_data)
     except Exception as error:
         raise argparse.ArgumentTypeError(
             'Invalid game runner configuration in input. '
-            f'Parsing failed with error: "{error}"'
+            f'Parsing failed with {describe_exception(error)}'
         ) from error
 
 

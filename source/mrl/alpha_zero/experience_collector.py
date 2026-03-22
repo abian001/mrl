@@ -7,9 +7,25 @@ import time
 import pickle
 import numpy as np
 import h5py
+from pydantic import BaseModel, field_serializer
 from mrl.alpha_zero.oracle import Oracle
-from mrl.alpha_zero.mcts import NonDeterministicMCTSPolicy, MCTSGame
-from mrl.configuration.alpha_zero_configuration import CollectorConfiguration
+from mrl.alpha_zero.mcts import NonDeterministicMCTSPolicy, MCTSGame, MCTSConfiguration
+
+
+class CollectorConfiguration(BaseModel):
+    mcts: MCTSConfiguration
+    max_buffer_length: int
+    number_of_episodes: int
+    temperature_schedule: tuple[tuple[int, float]]
+    number_of_processes: int
+
+    @field_serializer("temperature_schedule")
+    def temperature_schedule_to_list(
+        self,
+        temperature_schedule: tuple[tuple[int, float]],
+        _info: Any
+    ):
+        return [[x[0], x[1]] for x in temperature_schedule]
 
 
 def make_buffer_collector(game: MCTSGame, model: Oracle, config: CollectorConfiguration):
@@ -22,6 +38,25 @@ def make_hdf5_collector(game: MCTSGame, model: Oracle, config: CollectorConfigur
     if config.number_of_processes > 1:
         return MultiHDF5Collector(game, model, config)
     return SingleHDF5Collector(game, model, config)
+
+
+def get_hdf5_dataset(
+    hdf5_file: h5py.File,
+    dataset_name: str,
+    file_path: str | None
+) -> h5py.Dataset:
+    resolved_file_path = file_path or "<unknown>"
+    try:
+        dataset = hdf5_file[dataset_name]
+    except KeyError as error:
+        raise KeyError(
+            f"HDF5 file {resolved_file_path} is missing dataset {dataset_name!r}."
+        ) from error
+    if not isinstance(dataset, h5py.Dataset):
+        raise TypeError(
+            f"HDF5 entry {dataset_name!r} in file {resolved_file_path} is not a dataset."
+        )
+    return dataset
 
 
 class TemperatureSchedule:
@@ -182,12 +217,9 @@ class SingleHDF5Collector(SingleProcessCollector):
         new_payoffs
     ):  # pylint: disable=no-member
         with h5py.File(self.file_path, 'a') as hdf5_file:
-            observations = hdf5_file['observations']
-            probabilities = hdf5_file['probabilities']
-            payoffs = hdf5_file['payoffs']
-            assert isinstance(observations, h5py.Dataset)
-            assert isinstance(probabilities, h5py.Dataset)
-            assert isinstance(payoffs, h5py.Dataset)
+            observations = get_hdf5_dataset(hdf5_file, 'observations', self.file_path)
+            probabilities = get_hdf5_dataset(hdf5_file, 'probabilities', self.file_path)
+            payoffs = get_hdf5_dataset(hdf5_file, 'payoffs', self.file_path)
 
             current_size = observations.shape[0]
             new_size = current_size + new_observations.shape[0]

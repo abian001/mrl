@@ -12,29 +12,13 @@ from mrl.configuration.gui_factory import make_gui
 from mrl.configuration.player_utils import validate_player
 from mrl.configuration.mcts_factories import make_oracle, make_mcts_game
 from mrl.tkinter_gui.gui import Gui
+from mrl.alpha_zero.experience_collector import CollectorConfiguration
 from mrl.alpha_zero.oracle import Oracle
-from mrl.alpha_zero.mcts import MCTSConfiguration, MCTSGame
+from mrl.alpha_zero.mcts import MCTSGame
 from mrl.alpha_zero.model_trainer import ModelTrainerConfiguration
 
 
 Player = Any  # Will become the specific game's player at run time
-
-
-class CollectorConfiguration(BaseModel):
-    mcts: MCTSConfiguration
-    max_buffer_length: int
-    number_of_episodes: int
-    temperature_schedule: tuple[tuple[int, float]]
-    number_of_processes: int
-
-    @field_serializer("temperature_schedule")
-    def temperature_schedule_to_list(
-        self,
-        temperature_schedule: tuple[tuple[int, float]],
-        _info: Any
-    ):
-        return [[x[0], x[1]] for x in temperature_schedule]
-
 
 class ModelTestConfiguration(BaseModel):
     oracle_led_players: tuple[Player]
@@ -134,11 +118,11 @@ class _BaseAlphaZeroConfiguration(BaseModel):
 
     def save(self, file_path: str | None = None):
         save_path = file_path or self.config_file_path
-        assert save_path is not None, (
-            "No output file defined when saving alpha zero configuration. "
-            "Either pass a path to the save method or include a config_path "
-            "field in your yaml code."
-        )
+        if save_path is None:
+            raise ValueError(
+                "No output file defined when saving alpha zero configuration. "
+                "Either pass a path to save() or include config_file_path in the configuration."
+            )
         with open(save_path, "w", encoding = 'UTF-8') as yaml_file:
             yaml.dump(self.model_dump(by_alias = True), yaml_file)
 

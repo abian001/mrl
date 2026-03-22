@@ -11,7 +11,7 @@ from mrl.configuration.alpha_zero_runner_configuration import (
     make_alpha_zero_runner_specification,
     AlphaZeroRunnerSpecification
 )
-from mrl.test_utils.exit_handler import try_main
+from mrl.test_utils.error_handler import try_main, describe_exception
 
 
 def main():
@@ -81,8 +81,13 @@ def _parse_configuration(path: str) -> AlphaZeroRunnerSpecification:
             config_data = yaml.safe_load(yaml_file)
     except Exception as error:
         raise argparse.ArgumentTypeError(
-            f'Failed to access the file {path} with error: "{error}".'
+            f'Failed to access the file {path}. {describe_exception(error)}'
         ) from error
+
+    if not isinstance(config_data, dict):
+        raise argparse.ArgumentTypeError(
+            f'Configuration file {path} must contain a YAML mapping at the top level.'
+        )
 
     if 'config_file_path' in config_data:
         config_file_path = Path(config_data['config_file_path'])
@@ -100,7 +105,7 @@ def _parse_configuration(path: str) -> AlphaZeroRunnerSpecification:
     except Exception as error:
         raise argparse.ArgumentTypeError(
             'Invalid Alpha Zero configuration in input. '
-            f'Parsing failed with error: "{error}"'
+            f'Parsing failed with {describe_exception(error)}'
         ) from error
 
 
@@ -112,9 +117,11 @@ class AlphaZeroRunner:
 
     def run(self):
         if self.mode == TestMode.TRAIN:
-            assert not os.path.exists(self.config.oracle_file_path), (
-                f"{self.config.oracle_file_path} already exists"
-            )
+            if os.path.exists(self.config.oracle_file_path):
+                raise FileExistsError(
+                    f"Model file {self.config.oracle_file_path} already exists. "
+                    "Use --mode overwrite to replace it or --mode resume to continue training."
+                )
         if self.mode == TestMode.OVERWRITE:
             if os.path.exists(self.config.oracle_file_path):
                 os.remove(self.config.oracle_file_path)

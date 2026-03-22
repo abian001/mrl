@@ -132,7 +132,7 @@ class DistributedAlphaZero:
         self.model = config.oracle
         if not isinstance(self.model, torch.nn.Module):
             raise TypeError(
-                "Oracle class {type(self.model)} is not a torch Module. "
+                f"Oracle class {type(self.model)} is not a torch Module."
             )
         self.model_trainer = ModelTrainer(self.model, config.trainer)
 

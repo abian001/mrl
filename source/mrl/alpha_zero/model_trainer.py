@@ -4,6 +4,7 @@ from abc import abstractmethod
 import torch
 from torch.utils.data import Dataset, DataLoader
 import h5py
+from mrl.alpha_zero.experience_collector import get_hdf5_dataset
 
 
 class TrainDataset(Dataset):
@@ -29,8 +30,7 @@ class HDF5Dataset(Dataset):
         self.file = None
 
         with h5py.File(self.file_path, 'r') as hdf5_file:
-            observations = hdf5_file['observations']
-            assert isinstance(observations, h5py.Dataset)
+            observations = get_hdf5_dataset(hdf5_file, 'observations', self.file_path)
             self.length = len(observations)
 
     def __len__(self):
@@ -41,12 +41,9 @@ class HDF5Dataset(Dataset):
         if self.file is None:
             self.file = h5py.File(self.file_path, 'r')
 
-        observations = self.file['observations']
-        probabilities = self.file['probabilities']
-        payoffs = self.file['payoffs']
-        assert isinstance(observations, h5py.Dataset)
-        assert isinstance(probabilities, h5py.Dataset)
-        assert isinstance(payoffs, h5py.Dataset)
+        observations = get_hdf5_dataset(self.file, 'observations', self.file_path)
+        probabilities = get_hdf5_dataset(self.file, 'probabilities', self.file_path)
+        payoffs = get_hdf5_dataset(self.file, 'payoffs', self.file_path)
 
         observation = observations[idx]
         probabilities = probabilities[idx]

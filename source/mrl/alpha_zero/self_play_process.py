@@ -31,7 +31,10 @@ def parse_arguments(args):
 class PlayProcess:
 
     def __init__(self, config: UnionAlphaZeroConfiguration):
-        assert isinstance(config, HDF5AlphaZeroConfiguration)
+        if not isinstance(config, HDF5AlphaZeroConfiguration):
+            raise TypeError(
+                "Self-play processes require an HDF5 alpha zero configuration."
+            )
         self.config = config
         self.model = config.oracle
         self.model_time = None

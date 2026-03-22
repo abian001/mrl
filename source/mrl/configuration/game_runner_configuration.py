@@ -153,14 +153,14 @@ def _make_oracle(
         if os.path.exists(file_path):
             oracle.load(file_path)
         else:
-            raise TypeError(
-                "When creating oracle {oracle.name}, there was an attempt "
-                "to load parameters from {file_path}, but the file does not exists."
+            raise FileNotFoundError(
+                f"When creating oracle {oracle_config['name']}, there was an attempt "
+                f"to load parameters from {file_path}, but the file does not exist."
             )
 
     if file_path is None and oracle_config.get('load', False):
-        raise TypeError(
-            "When creating oracle {oracle.name}, there is an explicit request "
+        raise ValueError(
+            f"When creating oracle {oracle_config['name']}, there is an explicit request "
             "to load parameters, but no file has been defined"
         )
     return oracle
