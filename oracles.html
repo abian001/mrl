@@ -110,11 +110,18 @@ available to the player.</p>
 </pre></div>
 </div>
 <p>Below there is a list of oracles which are built-in the mrl library.</p>
+<p>For most uses in the Game Runner, implementing this <code class="docutils literal notranslate"><span class="pre">Oracle</span></code> protocol
+is enough. AlphaZero training is stricter: <code class="docutils literal notranslate"><span class="pre">run_alpha_zero</span></code> requires a
+<code class="docutils literal notranslate"><span class="pre">TrainableOracle</span></code> that can also save and load its parameters.</p>
 <section id="randomrollout">
 <h2>RandomRollout<a class="headerlink" href="#randomrollout" title="Link to this heading"></a></h2>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomRollout</span>
 <span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This oracle is not trainable with AlphaZero.</p>
 </div>
 <p>This oracle estimates the expected payoff by performing
 <code class="docutils literal notranslate"><span class="pre">number_of_rollouts</span></code> simulations using random actions.</p>
@@ -131,6 +138,10 @@ over the legal actions.</p>
 <span class="w">    </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 <span class="w">    </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This oracle is trainable with AlphaZero.</p>
 </div>
 <p>This oracle is implemented as a multi-layer perceptron (MLP). It takes
 as input the state of the game encoded as an <code class="docutils literal notranslate"><span class="pre">n</span></code>-dimensional vector
@@ -163,6 +174,10 @@ dimension of the probability distribution.</p>
 <span class="w">    </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This oracle is trainable with AlphaZero.</p>
+</div>
 <p>This oracle is implemented as a convolutional neural network. It takes
 as input the state of the game encoded as a array with shape <code class="docutils literal notranslate"><span class="pre">(channels</span>
 <span class="pre">×</span> <span class="pre">height</span> <span class="pre">×</span> <span class="pre">width)</span></code>. Reshaping is performed automatically, so a
@@ -188,6 +203,10 @@ convolutional layer.</p>
 <span class="w">    </span><span class="nt">nn_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 <span class="w">    </span><span class="nt">nn_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This oracle is trainable with AlphaZero.</p>
 </div>
 <p>This oracle is implemented as a convolutional neural network with
 residual connections.</p>
