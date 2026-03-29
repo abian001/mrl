@@ -39,13 +39,3 @@ Wu, D. J. (2019). "Accelerating Self-Play Learning in Go."
 https://arxiv.org/abs/1902.10565
 
 Project repository: https://github.com/lightvector/KataGo
-
-*******
- Codex
-*******
-
-This project was developed with the assistance of `OpenAI Codex
-<https://openai.com/codex/>`_ from release v0.1.0 through v0.2.0.
-
-Codex highlighted critical bugs that, once resolved, improved training
-outcomes.

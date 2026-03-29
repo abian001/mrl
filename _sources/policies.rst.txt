@@ -110,8 +110,6 @@ distribution.
        number_of_simulations: 10
        pucb_constant: 0.5
        discount_factor: 0.99
-       dirichlet_alpha: 0.0
-       dirichlet_weight: 0.0
 
 This policy requires a discrete action space and an oracle.
 
@@ -134,20 +132,10 @@ The parameters have the following meaning:
 
 -  ``number_of_simulations``: number of simulations performed for each
    decision.
-
 -  ``pucb_constant``: exploration weight. Higher values encourage
    exploration of less-visited actions.
-
 -  ``discount_factor``: discount applied to payoffs that occur later in
    the game.
-
--  ``dirichlet_alpha``: concentration parameter used when sampling
-   optional Dirichlet noise for the root priors. Smaller values produce
-   spikier noise.
-
--  ``dirichlet_weight``: how much of the sampled Dirichlet noise is
-   mixed into the root priors. A value of ``0.0`` disables the
-   mechanism.
 
 .. _nondet_mcts_policy:
 
@@ -165,8 +153,6 @@ The parameters have the following meaning:
        number_of_simulations: 10
        pucb_constant: 0.5
        discount_factor: 0.99
-       dirichlet_alpha: 0.3
-       dirichlet_weight: 0.25
        temperature: 0.99
 
 This policy performs the same MCTS simulation as ``MCTSPolicy`` but
@@ -175,11 +161,6 @@ selects the final action stochastically.
 Instead of choosing the most visited action, the policy samples from the
 distribution defined by the visit counts of the actions explored during
 the search.
-
-When ``dirichlet_weight`` is positive, Dirichlet noise is mixed into the
-root priors once per search. This is the AlphaZero-style exploration
-mechanism used to diversify self-play games without injecting noise into
-internal tree nodes.
 
 The ``temperature`` parameter controls the amount of randomness:
 

@@ -310,8 +310,7 @@ is provided in <code class="docutils literal notranslate"><span class="pre">simp
 blocks already available in the library.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">SaveLoadModule</span></code> block extends <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> and adds
 <code class="docutils literal notranslate"><span class="pre">save</span></code> and <code class="docutils literal notranslate"><span class="pre">load</span></code> methods for storing and loading parameters as
-expected by the AlphaZero runner. Together with <code class="docutils literal notranslate"><span class="pre">OracleMixin</span></code>, this
-produces a <code class="docutils literal notranslate"><span class="pre">TrainableOracle</span></code> suitable for AlphaZero training.</p>
+expected by the AlphaZero runner.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">OracleMixin</span></code> implements the core oracle functionality for
 computing expected payoff values and action probabilities.</p>
 <p>The mixin requires the following components to be defined in the
@@ -331,12 +330,10 @@ for the input state.</p></li>
 </pre></div>
 </div>
 <p>NOTE: You can also implement a hard-coded oracle that does not require
-training. In that case you only need to implement the basic <code class="docutils literal notranslate"><span class="pre">Oracle</span></code>
-protocol. Such an oracle can be used for evaluation together with
-policies that require an oracle (such as <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code>), but it is not
-sufficient for <code class="docutils literal notranslate"><span class="pre">run_alpha_zero</span></code> training because it is not a
-<code class="docutils literal notranslate"><span class="pre">TrainableOracle</span></code>. See the implementation of <code class="docutils literal notranslate"><span class="pre">RandomRollout</span></code> for an
-example of a non-trainable oracle.</p>
+training. In that case you only need to implement the oracle protocol.
+Such an oracle can be used for evaluation together with policies that
+require an oracle (such as <code class="docutils literal notranslate"><span class="pre">MCTSPolicy</span></code>). See the implementation of
+<code class="docutils literal notranslate"><span class="pre">RandomRollout</span></code> for an example.</p>
 <section id="what-to-do-next">
 <h3>What to do next?<a class="headerlink" href="#what-to-do-next" title="Link to this heading"></a></h3>
 <p>Edit <code class="docutils literal notranslate"><span class="pre">tic_tac_toe_alpha_zero.yaml</span></code> to allow longer training and try
@@ -345,26 +342,22 @@ playing against the trained model.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">oracle.</span> <span class="pre">capacity.</span> <span class="pre">nn_width</span></code>: set to 18 (to increase the model
 capacity to learn complex strategies)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">number_of_processes</span></code>: set to 4 (to speed-up data
-collection)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">mcts.</span> <span class="pre">number_of_simulation</span></code>: set to 225 (to obtain
 better move evaluations)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">number_of_episodes</span></code>: set to 100 (to simulate more games
-for each training epoch)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">max_buffer_length</span></code>: set to 10000 (to use more training
 examples at once during training)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trainer.</span> <span class="pre">max_training_epochs</span></code>: set to 100 (to ensure the model is
 trained enough for each batch of training examples)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">number_of_epochs</span></code>: set to 20 (to train the model for longer)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number_of_epochs</span></code>: set to 100 (to train the model for longer)</p></li>
 </ul>
 <p>After applying the changes described above, the following results were
 obtained in my tests:</p>
 <ul class="simple">
-<li><p>InMemory strategy: After 16 minutes of training, the model achieved
-an average payoff of 0.93, with a 90% win rate and a 4% loss rate
+<li><p>InMemory strategy: After 40 minutes of training, the model achieved
+an average payoff of 0.79, with a 67% win rate and a 9% loss rate
 against the random policy.</p></li>
-<li><p>HDF5 strategy: After 7 minutes of training, the model achieved an
-average payoff of 0.88, with a 85% win rate and a 9% loss rate
+<li><p>HDF5 strategy: After 26 minutes of training, the model achieved an
+average payoff of 0.74, with a 69% win rate and a 21% loss rate
 against the random policy.</p></li>
 </ul>
 </section>
