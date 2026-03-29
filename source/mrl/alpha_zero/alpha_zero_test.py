@@ -5,7 +5,7 @@ import shutil
 import pytest
 import yaml
 from mrl.configuration.alpha_zero_configuration import AlphaZeroConfiguration
-from mrl.configuration.alpha_zero_factories import make_alpha_zero
+from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
 
 
 # Shallow tests for alpha zero implementation
@@ -16,10 +16,10 @@ from mrl.configuration.alpha_zero_factories import make_alpha_zero
 @pytest.mark.slow
 def test_alpha_zero(
     specification: "Specification",
-    configuration: AlphaZeroConfiguration,
+    context,
     _clear_workspace: None
 ):
-    alpha_zero = make_alpha_zero(configuration)
+    alpha_zero = AlphaZeroRunnerFactory().make_alpha_zero(context)
     alpha_zero.train()
 
     for (prefix, expected) in specification.expected_file_prefixes.items():
@@ -53,7 +53,7 @@ def specification(number_of_processes: int, memory_type: str) -> Specification:
 
 
 @pytest.fixture
-def configuration(specification: Specification) -> AlphaZeroConfiguration:
+def context(specification: Specification):
     config_dict = yaml.safe_load(f"""
         type: {specification.memory_type}
         game:
@@ -103,7 +103,9 @@ def configuration(specification: Specification) -> AlphaZeroConfiguration:
         cofig_file_path: test_path
         workspace_path: {specification.workspace}
     """)
-    return AlphaZeroConfiguration(alpha_zero = config_dict)
+    return AlphaZeroRunnerFactory().make_context(
+        AlphaZeroConfiguration.model_validate(config_dict)
+    )
 
 
 @pytest.fixture

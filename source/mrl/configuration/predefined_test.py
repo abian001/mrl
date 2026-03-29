@@ -1,9 +1,13 @@
 import pytest
 from mrl.configuration.factory import ObjectConfiguration
-from mrl.configuration.gui_factory import make_gui
-from mrl.configuration.game_factories import make_stdin_policy, make_game, make_policy
 from mrl.configuration.game_runner_configuration import PolicyConfiguration
-from mrl.configuration.mcts_factories import make_oracle
+from mrl.configuration.runner_factories import (
+    make_game,
+    make_gui,
+    make_oracle,
+    make_policy,
+    make_stdin_policy,
+)
 from mrl.game.game import Policy
 from mrl.tic_tac_toe.game import TicTacToe, TicTacToeStdin
 from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe
@@ -19,7 +23,6 @@ from mrl.alpha_zero.random_rollout import RandomRollout
 from mrl.alpha_zero.mcts import MCTSPolicy, NonDeterministicMCTSPolicy, MemoryfullMCTSPolicy
 from mrl.alpha_zero.oracle import DeterministicOraclePolicy, StochasticOraclePolicy
 from mrl.tkinter_gui.gui import Gui
-
 
 @pytest.mark.parametrize('game_class', [
     TicTacToe,
@@ -75,17 +78,21 @@ def test_rock_paper_scissors_factory():
 ])
 @pytest.mark.quick
 def test_policy_factory(policy_class: type):
-    instance = make_policy(ObjectConfiguration(name = policy_class.__name__))
+    instance = make_policy(
+        ObjectConfiguration(name = policy_class.__name__),
+        game = object(),
+    )
     assert isinstance(instance, policy_class)
 
 
 @pytest.mark.quick
 def test_stdin_rock_paper_scissors_factory():
-    instance = make_policy(
+    instance = make_stdin_policy(
+        ObjectConfiguration(name = 'RockPaperScissors'),
         ObjectConfiguration.model_validate({
             'name': 'RockPaperScissorsStdin',
             'player': 'O'
-        })
+        }),
     )
     assert isinstance(instance, RockPaperScissorsStdin)
 
@@ -101,7 +108,8 @@ def test_open_spiel_mlp_factory():
                 'nn_width': '1',
                 'nn_depth': '1'
             }
-        })
+        }),
+        game = MCTSTicTacToe(),
     )
     assert isinstance(instance, OpenSpielMLP)
 
@@ -118,7 +126,8 @@ def test_open_spiel_cnn_factory(oracle_class: type):
                 'nn_width': '1',
                 'nn_depth': '1'
             }
-        })
+        }),
+        game = MCTSTicTacToe(),
     )
     assert isinstance(instance, oracle_class)
 
@@ -130,7 +139,7 @@ def test_random_rollout_factory():
             'name': 'RandomRollout',
             'number_of_rollouts': '1'
         }),
-        extra_arguments = {'game': MCTSTicTacToe()}
+        game = MCTSTicTacToe(),
     )
     assert isinstance(instance, RandomRollout)
 
@@ -153,10 +162,8 @@ def test_oracle_policy_factory(policy_class: type):
                 'temperature': '1.0'
             }
         }),
-        extra_arguments = {
-            'game': game,
-            'oracle': RandomRollout(game)
-        }
+        game = game,
+        oracle = RandomRollout(game),
     )
     assert isinstance(instance, policy_class)
 
@@ -170,10 +177,8 @@ def test_simple_oracle_policy_factory(policy_class: type):
     game = MCTSTicTacToe()
     instance = make_policy(
         ObjectConfiguration(name = policy_class.__name__),
-        extra_arguments = {
-            'game': game,
-            'oracle': RandomRollout(game)
-        }
+        game = game,
+        oracle = RandomRollout(game),
     )
     assert isinstance(instance, policy_class)
 
@@ -187,7 +192,11 @@ def test_simple_oracle_policy_factory(policy_class: type):
     (MCTSXiangqi, 'xiangqi')
 ])
 @pytest.mark.quick
-def test_make_gui(game_class: type, module_name: str, monkeypatch: pytest.MonkeyPatch):
+def test_make_gui(
+    game_class: type,
+    module_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+):
 
     class MockGui(Gui):
         def __init__(self):  # pylint: disable=super-init-not-called

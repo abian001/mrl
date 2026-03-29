@@ -1,25 +1,13 @@
 from pathlib import Path
-from typing import Any, Literal, Union, Annotated, cast
-import yaml
-from pydantic import (
-    BaseModel,
-    Field,
-    model_validator,
-    field_serializer,
-    PrivateAttr
-)
-from mrl.configuration.factory import ObjectConfiguration
-from mrl.configuration.player_utils import validate_player
-from mrl.configuration.gui_factory import make_gui
-from mrl.configuration.mcts_factories import make_oracle, make_mcts_game
-from mrl.tkinter_gui.gui import Gui
+from typing import Annotated, Any, Literal, Union
+
+from pydantic import BaseModel, Field, field_serializer, model_validator
+
 from mrl.alpha_zero.experience_collector import CollectorConfiguration
-from mrl.alpha_zero.oracle import Oracle
-from mrl.alpha_zero.mcts import MCTSGame
 from mrl.alpha_zero.model_trainer import ModelTrainerConfiguration
+from mrl.configuration.factory import ObjectConfiguration
+Player = Any
 
-
-Player = Any  # Will become the specific game's player at run time
 
 class ModelTestConfiguration(BaseModel):
     oracle_led_players: tuple[Player]
@@ -28,10 +16,12 @@ class ModelTestConfiguration(BaseModel):
 
     @field_serializer("oracle_led_players")
     def serialize_players(self, players: tuple[Player], _info: Any):
-        return [x.value for x in players]
+        return [getattr(player, 'value', player) for player in players]
 
     @field_serializer("buckets")
-    def buckets_to_list(self, buckets: tuple[tuple[float, float]], _info: Any):
+    def buckets_to_list(self, buckets: tuple[tuple[float, float], ...] | None, _info: Any):
+        if buckets is None:
+            return None
         return [[x[0], x[1]] for x in buckets]
 
 
@@ -61,10 +51,17 @@ class OracleConfiguration(ObjectConfiguration):
         return self.capacity.output_size or self.base_output_size
 
 
+class ManualPlayConfiguration(BaseModel):
+    manual_player: str | None = None
+    policy_configuration: ObjectConfiguration = Field(
+        alias = 'autonomous_policy',
+        default_factory = lambda: ObjectConfiguration(name = 'DeterministicOraclePolicy')
+    )
+
+
 class _BaseAlphaZeroConfiguration(BaseModel):
     game_configuration: ObjectConfiguration = Field(alias = 'game')
     oracle_configuration: OracleConfiguration = Field(alias = 'oracle')
-    gui_configuration: ObjectConfiguration | None = Field(alias = 'gui', default = None)
     trainer: ModelTrainerConfiguration
     collector: CollectorConfiguration
     number_of_epochs: int
@@ -72,60 +69,13 @@ class _BaseAlphaZeroConfiguration(BaseModel):
     config_file_path: Path
     workspace_path: Path = Field(default = Path("workspace"))
     evaluation: EvaluationConfiguration
-    _game: MCTSGame | None = PrivateAttr(default = None)
-    _oracle: Oracle | None = PrivateAttr(default = None)
-    _gui: Gui | None = PrivateAttr(default = None)
-
-    @property
-    def game(self):
-        if self._game is None:
-            self._game = make_mcts_game(self.game_configuration)
-            if not isinstance(self._game, MCTSGame):
-                raise TypeError(
-                    f'Game class {type(self._game)} is not an mcts game. '
-                    'Only MCTS Games are supported for alpha zero.'
-                )
-        return self._game
-
-    @property
-    def oracle(self):
-        if self._oracle is None:
-            self._oracle = make_oracle(
-                self.oracle_configuration,
-                extra_arguments = {'game': self.game}
-            )
-            if not isinstance(self._oracle, Oracle):
-                raise TypeError(
-                    f'Oracle class {type(self._oracle)} is not a valid oracle '
-                    'class. Only classes derived form Oracle are supported.'
-                )
-        return self._oracle
-
-    def _get_oracle_configuration(self) -> OracleConfiguration:
-        return cast(OracleConfiguration, self.oracle_configuration)
 
     @property
     def oracle_file_path(self) -> Path:
-        oracle_configuration = self._get_oracle_configuration()
-        if oracle_configuration.file_path.is_absolute():
-            return oracle_configuration.file_path
-        return self.workspace_path / oracle_configuration.file_path
-
-    @property
-    def gui(self) -> Gui:
-        if self._gui is None:
-            self._gui = make_gui(self.game_configuration, self.gui_configuration)
-        return self._gui
-
-    def save(self, file_path: str | None = None):
-        save_path = file_path or self.config_file_path
-        if save_path is None:
-            raise ValueError(
-                "No output file defined when saving alpha zero configuration. "
-                "Either pass a path to save() or include config_file_path in the configuration."
-            )
-        with open(save_path, "w", encoding = 'UTF-8') as yaml_file:
-            yaml.dump(self.model_dump(by_alias = True), yaml_file)
+        oracle_file_path = self.oracle_configuration.file_path  # pylint: disable=no-member
+        if oracle_file_path.is_absolute():
+            return oracle_file_path
+        return self.workspace_path / oracle_file_path
 
     @field_serializer("config_file_path")
     def config_file_path_to_string(self, config_file_path: Path, _info: Any):
@@ -134,40 +84,6 @@ class _BaseAlphaZeroConfiguration(BaseModel):
     @field_serializer("workspace_path")
     def workspace_path_to_string(self, workspace_path: Path, _info: Any):
         return str(workspace_path)
-
-    @model_validator(mode = "after")
-    def validate_report_generator_oracle_led_players(self):
-        self.report_generator.oracle_led_players = tuple(
-            validate_player(self.game, player)
-            for player in self.report_generator.oracle_led_players
-        )
-        return self
-
-    @model_validator(mode = "after")
-    def validate_output_size(self):
-        any_perspective = next(iter(self.game.get_perspectives().values()))
-        if not all(
-            any_perspective.action_space_dimension == p.action_space_dimension
-            for p in self.game.get_perspectives().values()
-        ):
-            raise TypeError(
-                f'Perspectives of game {type(self.game)} return different action '
-                'space sizes. This implementation of alpha zero only '
-                'supports games whose perspectives have the same action space.'
-            )
-        oracle_configuration = self._get_oracle_configuration()
-        output_size = oracle_configuration.output_size
-        if output_size is not None and any_perspective.action_space_dimension != output_size:
-            raise TypeError(
-                'Mismatched output sizes between the game and the model. The game '
-                f'output space size is {any_perspective.action_space_dimension}. '
-                f'The model output size is {output_size}.'
-            )
-        return self
-
-
-def make_new_oracle_clone(config: _BaseAlphaZeroConfiguration) -> Oracle:
-    return make_oracle(config.oracle_configuration, extra_arguments = {'game': config.game})
 
 
 class HDF5AlphaZeroConfiguration(_BaseAlphaZeroConfiguration):
@@ -180,24 +96,29 @@ class HDF5AlphaZeroConfiguration(_BaseAlphaZeroConfiguration):
     def hdf5_path_prefix_to_string(self, hdf5_path_prefix: Path, _info: Any):
         return str(hdf5_path_prefix)
 
-    @model_validator(mode = "after")
-    def validate_config_file_path(self):
-        # configuration file must exist because HDF5 relies on sharing the
-        # file across processes.
-        if not self.config_file_path.exists():
-            self.save()
-        return self
-
 
 class InMemoryAlphaZeroConfiguration(_BaseAlphaZeroConfiguration):
     type: Literal["InMemory"]
 
 
-UnionAlphaZeroConfiguration = Annotated[
+_UnionAlphaZeroConfiguration = Annotated[
     Union[InMemoryAlphaZeroConfiguration, HDF5AlphaZeroConfiguration],
     Field(discriminator = 'type')
 ]
 
 
 class AlphaZeroConfiguration(BaseModel):
-    alpha_zero: UnionAlphaZeroConfiguration
+    data: _UnionAlphaZeroConfiguration
+
+    @model_validator(mode = 'before')
+    @classmethod
+    def _wrap_data(cls, data):
+        if isinstance(data, dict) and 'data' not in data:
+            return {'data': data}
+        return data
+
+    def __getattr__(self, name: str):
+        return getattr(self.data, name)
+
+    def model_dump(self, *args, **kwargs):
+        return self.data.model_dump(*args, **kwargs)

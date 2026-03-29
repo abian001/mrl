@@ -3,20 +3,20 @@ import os
 import time
 import asyncio
 import yaml
+from mrl.alpha_zero.context import HDF5AlphaZeroContext, UnionAlphaZeroContext
 from mrl.alpha_zero.experience_collector import SingleHDF5Collector
-from mrl.configuration.alpha_zero_configuration import (
-    AlphaZeroConfiguration,
-    UnionAlphaZeroConfiguration,
-    HDF5AlphaZeroConfiguration
-)
+from mrl.configuration.alpha_zero_configuration import AlphaZeroConfiguration
+from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
 
 
 async def main(args = None):
     args = parse_arguments(args)
     with open(args.config_file, "r", encoding = 'UTF-8') as yaml_file:
         data = yaml.safe_load(yaml_file)
-    config = AlphaZeroConfiguration(alpha_zero = data | {'config_file_path': args.config_file})
-    play_process = PlayProcess(config.alpha_zero)
+    configuration = AlphaZeroConfiguration.model_validate(
+        data | {'config_file_path': args.config_file}
+    )
+    play_process = PlayProcess(AlphaZeroRunnerFactory().make_context(configuration))
     await play_process.run(args.process_index, args.verbose)
 
 
@@ -30,50 +30,50 @@ def parse_arguments(args):
 
 class PlayProcess:
 
-    def __init__(self, config: UnionAlphaZeroConfiguration):
-        if not isinstance(config, HDF5AlphaZeroConfiguration):
+    def __init__(self, context: UnionAlphaZeroContext):
+        if not isinstance(context, HDF5AlphaZeroContext):
             raise TypeError(
                 "Self-play processes require an HDF5 alpha zero configuration."
             )
-        self.config = config
-        self.model = config.oracle
+        self.context = context
+        self.model = context.oracle
         self.model_time = None
-        self.collector = SingleHDF5Collector(config.game, self.model, config.collector)
+        self.collector = SingleHDF5Collector(context.game, self.model, context.collector)
 
     async def run(self, process_index, verbose):
-        if not (self.config.workspace_path.exists() and self.config.workspace_path.is_dir()):
+        if not (self.context.workspace_path.exists() and self.context.workspace_path.is_dir()):
             raise RuntimeError(
-                f"Workspace {self.config.workspace_path} does not exist or "
+                f"Workspace {self.context.workspace_path} does not exist or "
                 "is not a directory. Please ensure to create it prior to "
                 "creating a self play process."
             )
         epochs_per_process = (
-            self.config.number_of_epochs // self.config.collector.number_of_processes
+            self.context.number_of_epochs // self.context.collector.number_of_processes
         )
-        if (self.config.number_of_epochs % self.config.collector.number_of_processes) > 0:
+        if (self.context.number_of_epochs % self.context.collector.number_of_processes) > 0:
             epochs_per_process += 1
-        async with ModelLoader(self.model, self.config) as loader:
+        async with ModelLoader(self.model, self.context) as loader:
             for epoch in range(epochs_per_process):
                 await asyncio.sleep(0)
                 if verbose:
                     await self._notify_epoch(epoch, loader)
-                file_name = f"{self.config.hdf5_path_prefix}_{process_index}_{epoch}.h5"
-                file_path = f"{self.config.workspace_path}/{file_name}"
+                file_name = f"{self.context.hdf5_path_prefix}_{process_index}_{epoch}.h5"
+                file_path = f"{self.context.workspace_path}/{file_name}"
                 self.collector.collect(file_path)
                 await loader.notify(file_path)
             await loader.notify("Done")
 
     async def _notify_epoch(self, epoch, loader):
         await loader.notify(
-            f"Running epoch {epoch} with model {self.config.oracle_file_path} with "
+            f"Running epoch {epoch} with model {self.context.oracle_file_path} with "
             f"timestamp {loader.get_active_model_timestamp()}"
         )
 
 
 class ModelLoader:
 
-    def __init__(self, model, config: HDF5AlphaZeroConfiguration):
-        self.config = config
+    def __init__(self, model, context: HDF5AlphaZeroContext):
+        self.context = context
         self.model = model
         self.stdin = None
         self.task: asyncio.Task | None = None
@@ -83,8 +83,8 @@ class ModelLoader:
 
     async def __aenter__(self):
         self.reader, self.writer = await asyncio.open_connection(
-            self.config.server_hostname,
-            self.config.server_port
+            self.context.server_hostname,
+            self.context.server_port
         )
         self.task = asyncio.create_task(self._listen())
         return self
@@ -121,7 +121,7 @@ class ModelLoader:
         wait_time_per_attempt = 1
         for attempt in range(number_of_attempts):
             try:
-                self.model.load(self.config.oracle_file_path)
+                self.model.load(self.context.oracle_file_path)
                 self.model_time = self._get_model_file_timestamp()
             except Exception as error:  # pylint: disable=broad-exception-caught
                 if attempt == (number_of_attempts - 1):
@@ -134,8 +134,8 @@ class ModelLoader:
         return self.model_time
 
     def _get_model_file_timestamp(self):
-        if os.path.exists(self.config.oracle_file_path):
-            return os.path.getmtime(self.config.oracle_file_path)
+        if os.path.exists(self.context.oracle_file_path):
+            return os.path.getmtime(self.context.oracle_file_path)
         return None
 
 

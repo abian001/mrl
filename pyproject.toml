@@ -7,7 +7,7 @@ dependencies = []
 
 [project.scripts]
 run_game = 'mrl.test_utils.game_runner:main'
-run_alpha_zero = 'mrl.test_utils.alpha_zero:main'
+run_alpha_zero = 'mrl.test_utils.alpha_zero_runner:main'
 get_examples = 'mrl.test_utils.get_examples:main'
 
 

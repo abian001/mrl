@@ -6,7 +6,7 @@ import subprocess
 import shutil
 import pytest
 from mrl.test_utils.game_runner import main as game_runner
-from mrl.test_utils.alpha_zero import main as alpha_zero
+from mrl.test_utils.alpha_zero_runner import main as alpha_zero
 from mrl.test_utils.get_examples import main as get_examples
 
 

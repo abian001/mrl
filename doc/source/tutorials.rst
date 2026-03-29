@@ -281,7 +281,8 @@ blocks already available in the library.
 
 The ``SaveLoadModule`` block extends ``torch.nn.Module`` and adds
 ``save`` and ``load`` methods for storing and loading parameters as
-expected by the AlphaZero runner.
+expected by the AlphaZero runner. Together with ``OracleMixin``, this
+produces a ``TrainableOracle`` suitable for AlphaZero training.
 
 The ``OracleMixin`` implements the core oracle functionality for
 computing expected payoff values and action probabilities.
@@ -306,10 +307,12 @@ You can train an AlphaZero model using the custom network:
    run_alpha_zero examples/tic_tac_toe_alpha_zero_custom_oracle.yaml --mode train
 
 NOTE: You can also implement a hard-coded oracle that does not require
-training. In that case you only need to implement the oracle protocol.
-Such an oracle can be used for evaluation together with policies that
-require an oracle (such as ``MCTSPolicy``). See the implementation of
-``RandomRollout`` for an example.
+training. In that case you only need to implement the basic ``Oracle``
+protocol. Such an oracle can be used for evaluation together with
+policies that require an oracle (such as ``MCTSPolicy``), but it is not
+sufficient for ``run_alpha_zero`` training because it is not a
+``TrainableOracle``. See the implementation of ``RandomRollout`` for an
+example of a non-trainable oracle.
 
 What to do next?
 ================

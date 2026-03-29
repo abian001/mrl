@@ -18,7 +18,7 @@ from mrl.game.game import (
     HasActivePlayer
 )
 from mrl.game.game_loop import make_game_loop
-from mrl.configuration.factory import ObjectConfiguration, make_object
+from mrl.configuration.factory import ObjectConfiguration, make_game
 from mrl.tkinter_gui.policy import TkinterPolicy
 
 
@@ -205,7 +205,7 @@ class GameController(Generic[Action]):
             )
 
     def _make_game_loop(self):
-        game = make_object(self.model.game_configuration)
+        game = make_game(self.model.game_configuration)
         self.model.perspectives = game.get_perspectives()
         return make_game_loop(
             game = game,

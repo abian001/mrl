@@ -4,6 +4,7 @@ import importlib
 import inspect
 from pydantic import BaseModel, create_model, ConfigDict
 from mrl.configuration.predefined import predefined_modules
+from mrl.game.game import Game
 
 
 class ObjectConfiguration(BaseModel, extra = 'allow'):
@@ -30,6 +31,16 @@ def make_object(
         key: getattr(constructor_configuration, key)
         for key in configuration_class.model_fields
     })
+
+
+def make_game(configuration: ObjectConfiguration) -> Game:
+    game = make_object(configuration)
+    if not isinstance(game, Game):
+        raise TypeError(
+            f"Invalid game class {type(game)}. "
+            "Game classes should derive from class Game."
+        )
+    return game
 
 
 def _import(config: ObjectConfiguration) -> Callable:

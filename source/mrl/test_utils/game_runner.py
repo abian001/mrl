@@ -3,13 +3,11 @@ import os
 from typing import Generic
 import argparse
 import yaml
-from mrl.game.game import Player
+from mrl.game.game import Player, Policy
 from mrl.game.game_loop import make_game_loop
 from mrl.game.trackers import MultiResultTracker
-from mrl.configuration.game_runner_configuration import (
-    GameRunnerSpecification,
-    make_game_runner_specification
-)
+from mrl.configuration.game_runner_configuration import GameRunnerConfiguration
+from mrl.configuration.game_runner_factory import GameRunnerFactory
 from mrl.test_utils.policies import ManualPolicy
 from mrl.test_utils.error_handler import try_main, describe_exception
 from mrl.alpha_zero.mcts_observation import PayoffPerspective
@@ -65,7 +63,7 @@ def _parse_test_mode(value: str) -> TestMode:
         ) from error
 
 
-def _parse_configuration(path: str) -> GameRunnerSpecification:
+def _parse_configuration(path: str) -> GameRunnerConfiguration:
     if not os.path.exists(path):
         raise argparse.ArgumentTypeError(
             f'Input file {path} does not exist.'
@@ -85,7 +83,7 @@ def _parse_configuration(path: str) -> GameRunnerSpecification:
         )
 
     try:
-        return make_game_runner_specification(config_data)
+        return GameRunnerConfiguration.model_validate(config_data)
     except Exception as error:
         raise argparse.ArgumentTypeError(
             'Invalid game runner configuration in input. '
@@ -93,15 +91,54 @@ def _parse_configuration(path: str) -> GameRunnerSpecification:
         ) from error
 
 
-class GameRunner(Generic[Player]):
+class GameRunner(Generic[Player]):  # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, specification: GameRunnerSpecification[Player], mode: TestMode):
-        self.specification = specification
+    def __init__(self, configuration: GameRunnerConfiguration, mode: TestMode):
+        self.configuration = configuration
         self.mode: TestMode = mode
+        factory = GameRunnerFactory()
+        self.game = factory.make_runner_game(self.configuration)
+        self.policies = factory.make_policies(self.configuration, self.game)
+        self._factory = factory
+        self._terminal_policies: dict[Player, Policy] | None = None
+        self._gui = None
+        self._observed_players: tuple[Player, ...] | None = None
         self.manual_players = tuple((
-            player for (player, policy) in self.specification.policies.items()
+            player for (player, policy) in self.policies.items()
             if isinstance(policy, ManualPolicy)
         ))
+
+    @property
+    def terminal_policies(self) -> dict[Player, Policy]:
+        if self._terminal_policies is None:
+            self._terminal_policies = self._factory.make_terminal_policies(
+                self.configuration,
+                self.policies,
+            )
+        return self._terminal_policies
+
+    @property
+    def gui(self):
+        if self._gui is None:
+            self._gui = self._factory.make_runner_gui(self.configuration)
+        return self._gui
+
+    @property
+    def observed_players(self) -> tuple[Player, ...]:
+        if self._observed_players is None:
+            self._observed_players = self._factory.make_observed_players(
+                self.configuration,
+                self.game,
+            )
+        return self._observed_players
+
+    @property
+    def number_of_tests(self) -> int:
+        return self.configuration.evaluation_config.number_of_tests
+
+    @property
+    def buckets(self) -> tuple[tuple[float, float], ...]:
+        return self.configuration.evaluation_config.buckets
 
     def run(self):
         if self.mode == TestMode.EVALUATE:
@@ -130,8 +167,8 @@ class GameRunner(Generic[Player]):
 
     def _run_evaluation(self) -> None:
         observed_perspectives: dict[Player, PayoffPerspective] = {}
-        for (player, perspective) in self.specification.game.get_perspectives().items():
-            if player in self.specification.evaluation.observed_players:
+        for (player, perspective) in self.game.get_perspectives().items():
+            if player in self.observed_players:
                 if not isinstance(perspective, PayoffPerspective):
                     raise TypeError(
                         f"EVALUATE mode was requested, but the player {player}'s "
@@ -141,29 +178,31 @@ class GameRunner(Generic[Player]):
                     )
                 observed_perspectives[player] = perspective
 
-        tracker = MultiResultTracker(observed_perspectives, self.specification.evaluation.buckets)
+        tracker = MultiResultTracker(observed_perspectives, self.buckets)
         game_loop = make_game_loop(
-            game = self.specification.game,
-            policies = self.specification.policies,
+            game = self.game,
+            policies = self.policies,
             global_observer = tracker
         )
-        game_loop.run(self.specification.evaluation.number_of_tests)
+        game_loop.run(self.number_of_tests)
         tracker.print_results()
 
     def _run_terminal_play(self):
         game_loop = make_game_loop(
-            game = self.specification.game,
-            policies = self.specification.policies_with_manual_replaced
+            game = self.game,
+            policies = self.terminal_policies
         )
         game_loop.run()
 
     def _run_gui_play(self):
-        self.specification.gui.set_policies({
+        if self.gui is None:
+            raise TypeError("GUI mode was requested but no GUI is available.")
+        self.gui.set_policies({
             player: policy
-            for (player, policy) in self.specification.policies.items()
+            for (player, policy) in self.policies.items()
             if not isinstance(policy, ManualPolicy)
         })
-        self.specification.gui.run()
+        self.gui.run()
 
 
 if __name__ == "__main__":

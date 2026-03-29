@@ -2,7 +2,7 @@ from enum import Enum
 from dataclasses import dataclass
 import pytest
 from mrl.configuration.factory import ObjectConfiguration, make_object
-from mrl.configuration.gui_factory import make_gui
+from mrl.configuration.runner_factories import make_gui
 from mrl.tkinter_gui.gui import Gui
 
 

@@ -146,24 +146,14 @@ This section defines the model being trained.
 
 It includes:
 
--  the name of the oracle class;
+-  the name of the trainable oracle class;
 -  optional parameters required by the oracle constructor;
 -  a ``file_path`` specifying where the model parameters are saved.
 
-Custom oracle implementations must support the ``SaveLoad`` protocol so
-that their parameters can be stored and restored.
-
-.. code:: python
-
-   class SaveLoad(Protocol):
-
-       @abstractmethod
-       def save(self, save_path: str | Path):
-           """Save parameters to file"""
-
-       @abstractmethod
-       def load(self, save_path: str | Path):
-           """Load parameters from file"""
+For ``run_alpha_zero``, the configured object must not be just a generic
+``Oracle``. It must be a **TrainableOracle**, meaning an oracle whose
+parameters can also be saved and restored during training and model
+selection.
 
 **********************
  Experience collector

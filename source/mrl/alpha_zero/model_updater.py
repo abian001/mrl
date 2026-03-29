@@ -4,29 +4,24 @@ import shutil
 from collections import UserDict
 import yaml
 import numpy as np
+from mrl.alpha_zero.context import UnionAlphaZeroContext
 from mrl.game.game import GlobalObserver
 from mrl.game.game_loop import make_game_loop
 from mrl.alpha_zero.mcts import MCTSGame
-from mrl.configuration.game_factories import make_policy
-from mrl.configuration.alpha_zero_configuration import (
-    UnionAlphaZeroConfiguration,
-    make_new_oracle_clone
-)
 
 
 class ModelUpdater:
 
-    def __init__(self, game: MCTSGame, config: UnionAlphaZeroConfiguration):
+    def __init__(self, game: MCTSGame, context: UnionAlphaZeroContext):
         self.game = game
-        self.evaluation = config.evaluation
-        self.model_path = config.oracle_file_path
+        self.evaluation = context.evaluation
+        self.model_path = context.oracle_file_path
         self.scores_path = f"{self.model_path}_scores.yaml"
-        self.clone_model = make_new_oracle_clone(config)
         self.old_models: list[str] = self._get_old_models()
         self.scores = ScoreTracker(self.scores_path, self.old_models)
 
     def save_if_better(self, model):
-        is_best, scores, new_scores = self._evaluate(model)
+        is_best, scores, new_scores = self._evaluate()
         if is_best:
             old_path = f"{self.model_path}_old_{len(self.old_models)}"
             self.old_models.append(old_path)
@@ -40,14 +35,20 @@ class ModelUpdater:
         self.scores.save(self.old_models)
         return is_best
 
-    def _evaluate(self, model):
+    def _evaluate(self):
         scores = copy.deepcopy(self.scores)
         new_scores = AverageScore()
         for file_path in self.old_models:
-            self.clone_model.load(file_path)
+            self.evaluation.oracle.load(file_path)
             for _ in range((self.evaluation.episodes // 2) + 1):
-                payoff_1 = self._evaluate_once(model, self.clone_model)
-                payoff_2 = self._evaluate_once(self.clone_model, model)
+                payoff_1 = self._evaluate_once(
+                    self.evaluation.policies.lead,
+                    self.evaluation.policies.opponent,
+                )
+                payoff_2 = self._evaluate_once(
+                    self.evaluation.policies.opponent,
+                    self.evaluation.policies.lead,
+                )
                 scores[file_path].append(payoff_2)
                 new_scores.append(payoff_1)
         new_average_score = new_scores.average_score
@@ -57,31 +58,20 @@ class ModelUpdater:
         )
         return is_best, scores, new_scores
 
-    def _evaluate_once(self, lead, opponent):
-        policy = self._make_evaluation_policy(lead)
-        opponent = self._make_evaluation_policy(opponent)
+    def _evaluate_once(self, lead_policy, opponent_policy):
         perspectives = self.game.get_perspectives()
         policy_player = np.random.choice(list(perspectives.keys()))
         score_observer = ScoreObserver(perspectives[policy_player])
         game_loop = make_game_loop(
             game = self.game,
             policies = {
-                player: policy if player is policy_player else opponent
+                player: lead_policy if player is policy_player else opponent_policy
                 for player in perspectives.keys()
             },
             global_observer = score_observer
         )
         game_loop.run()
         return score_observer.get_payoff()
-
-    def _make_evaluation_policy(self, oracle):
-        return make_policy(
-            self.evaluation.policy_configuration,
-            extra_arguments = {
-                'game': self.game,
-                'oracle': oracle
-            }
-        )
 
     def _get_old_models(self) -> list[str]:
         if not self.model_path.parent.exists():

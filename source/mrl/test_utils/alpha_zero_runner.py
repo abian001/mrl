@@ -1,16 +1,17 @@
-from enum import Enum
-from pathlib import Path
+import argparse
 import os
 import time
-import argparse
+from enum import Enum
+from pathlib import Path
+from typing import Protocol, cast, runtime_checkable
+
 import yaml
-from mrl.game.game_loop import make_game_loop
+
+from mrl.alpha_zero.context import AlphaZeroContext
 from mrl.alpha_zero.model_evaluation import EvaluationLoop
-from mrl.configuration.alpha_zero_factories import make_alpha_zero
-from mrl.configuration.alpha_zero_runner_configuration import (
-    make_alpha_zero_runner_specification,
-    AlphaZeroRunnerSpecification
-)
+from mrl.configuration.alpha_zero_runner_configuration import AlphaZeroRunnerConfiguration
+from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
+from mrl.game.game_loop import make_game_loop
 from mrl.test_utils.error_handler import try_main, describe_exception
 
 
@@ -70,7 +71,7 @@ def _parse_test_mode(value: str) -> TestMode:
         ) from error
 
 
-def _parse_configuration(path: str) -> AlphaZeroRunnerSpecification:
+def _parse_configuration(path: str) -> AlphaZeroRunnerConfiguration:
     if not os.path.exists(path):
         raise argparse.ArgumentTypeError(
             f'Input file {path} does not exist.'
@@ -101,7 +102,7 @@ def _parse_configuration(path: str) -> AlphaZeroRunnerSpecification:
 
     config_data['config_file_path'] = path
     try:
-        return make_alpha_zero_runner_specification(config_data)
+        return AlphaZeroRunnerConfiguration.model_validate(config_data)
     except Exception as error:
         raise argparse.ArgumentTypeError(
             'Invalid Alpha Zero configuration in input. '
@@ -109,24 +110,76 @@ def _parse_configuration(path: str) -> AlphaZeroRunnerSpecification:
         ) from error
 
 
-class AlphaZeroRunner:
+@runtime_checkable
+class Loadable(Protocol):
 
-    def __init__(self, config: AlphaZeroRunnerSpecification, mode: TestMode):
+    def load(self, file_path) -> None:
+        """Load model state from disk."""
+
+
+class AlphaZeroRunner:  # pylint: disable=too-many-instance-attributes
+
+    def __init__(self, config: AlphaZeroRunnerConfiguration, mode: TestMode):
         self.config = config
         self.mode: TestMode = mode
+        self.factory = AlphaZeroRunnerFactory()
+        self.alpha_zero_context: AlphaZeroContext = self.factory.make_context(
+            self.config.alpha_zero
+        )
+        self._manual_player = None
+        self._autonomous_policy = None
+        self._stdin_policy = None
+        self._gui = None
+
+    @property
+    def manual_player(self):
+        if self._manual_player is None:
+            self._manual_player = self.factory.make_manual_player(
+                self.config,
+                self.alpha_zero_context,
+            )
+        return self._manual_player
+
+    @property
+    def autonomous_policy(self):
+        if self._autonomous_policy is None:
+            self._autonomous_policy = self.factory.make_autonomous_policy(
+                self.config,
+                self.alpha_zero_context,
+            )
+        return self._autonomous_policy
+
+    @property
+    def stdin_policy(self):
+        if self._stdin_policy is None:
+            self._stdin_policy = self.factory.make_stdin_policy_for_runner(
+                self.config,
+                self.alpha_zero_context,
+                self.manual_player,
+            )
+        return self._stdin_policy
+
+    @property
+    def gui(self):
+        if self._gui is None:
+            self._gui = self.factory.make_manual_gui(
+                self.config,
+                self.alpha_zero_context,
+            )
+        return self._gui
 
     def run(self):
         if self.mode == TestMode.TRAIN:
-            if os.path.exists(self.config.oracle_file_path):
+            if os.path.exists(self.alpha_zero_context.oracle_file_path):
                 raise FileExistsError(
-                    f"Model file {self.config.oracle_file_path} already exists. "
+                    f"Model file {self.alpha_zero_context.oracle_file_path} already exists. "
                     "Use --mode overwrite to replace it or --mode resume to continue training."
                 )
         if self.mode == TestMode.OVERWRITE:
-            if os.path.exists(self.config.oracle_file_path):
-                os.remove(self.config.oracle_file_path)
+            if os.path.exists(self.alpha_zero_context.oracle_file_path):
+                os.remove(self.alpha_zero_context.oracle_file_path)
         if self.mode in (TestMode.TRAIN, TestMode.OVERWRITE, TestMode.RESUME):
-            alpha_zero = make_alpha_zero(self.config)
+            alpha_zero = self.factory.make_alpha_zero(self.alpha_zero_context)
             self._run_train(alpha_zero, resume = self.mode == TestMode.RESUME)
 
         elif self.mode == TestMode.EVALUATE:
@@ -142,40 +195,43 @@ class AlphaZeroRunner:
         end_time = time.perf_counter()
         print(f"Training took {end_time - start_time} seconds")
 
-    def _run_evaluation(self):
-        self.config.oracle.load(self.config.oracle_file_path)
+    def _run_evaluation(self) -> None:
+        oracle: Loadable = cast(Loadable, self.alpha_zero_context.oracle)
+        oracle.load(self.alpha_zero_context.oracle_file_path)  # pylint: disable=no-member
         report_generator = EvaluationLoop(
-            self.config.game,
-            self.config.oracle,
-            self.config.alpha_zero.report_generator
+            self.alpha_zero_context.game,
+            oracle,
+            self.alpha_zero_context.report_generator
         )
         report_generator()
 
-    def _run_terminal_play(self):
-        assert self.config.manual_play is not None
-        self.config.oracle.load(self.config.oracle_file_path)
+    def _run_terminal_play(self) -> None:
+        oracle: Loadable = cast(Loadable, self.alpha_zero_context.oracle)
+        oracle.load(self.alpha_zero_context.oracle_file_path)  # pylint: disable=no-member
         game_loop = make_game_loop(
-            game = self.config.game,
+            game = self.alpha_zero_context.game,
             policies = {
                 player: (
-                    self.config.stdin_policy
-                    if player == self.config.manual_player
-                    else self.config.autonomous_policy
+                    self.stdin_policy
+                    if player == self.manual_player
+                    else self.autonomous_policy
                 )
-                for player in self.config.game.get_players()
+                for player in self.alpha_zero_context.game.get_players()
             }
         )
         game_loop.run()
 
-    def _run_gui_play(self):
-        assert self.config.manual_play is not None
-        self.config.oracle.load(self.config.oracle_file_path)
-        self.config.gui.set_policies({
-            player: self.config.autonomous_policy
-            for player in self.config.game.get_players()
-            if player != self.config.manual_player
+    def _run_gui_play(self) -> None:
+        oracle: Loadable = cast(Loadable, self.alpha_zero_context.oracle)
+        oracle.load(self.alpha_zero_context.oracle_file_path)  # pylint: disable=no-member
+        if self.gui is None:
+            raise TypeError("GUI mode was requested but no GUI is available.")
+        self.gui.set_policies({
+            player: self.autonomous_policy
+            for player in self.alpha_zero_context.game.get_players()
+            if player != self.manual_player
         })
-        self.config.gui.run()
+        self.gui.run()
 
 
 if __name__ == "__main__":

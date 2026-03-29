@@ -1,7 +1,8 @@
 import os
 from typing import Callable
 import torch
-from mrl.alpha_zero.oracle import Oracle
+from mrl.alpha_zero.context import InMemoryAlphaZeroContext
+from mrl.alpha_zero.oracle import TrainableOracle
 from mrl.alpha_zero.experience_collector import (
     LocalExperienceCollector,
     SharedProcessCollector,
@@ -10,37 +11,35 @@ from mrl.alpha_zero.experience_collector import (
 from mrl.alpha_zero.model_trainer import ModelTrainer
 from mrl.alpha_zero.model_evaluation import EvaluationLoop
 from mrl.alpha_zero.model_updater import ModelUpdater
-from mrl.configuration.alpha_zero_configuration import InMemoryAlphaZeroConfiguration
 
 
 class AlphaZero:
 
-    def __init__(self, config: InMemoryAlphaZeroConfiguration):
-        self.model_path = config.oracle_file_path
-        game = config.game
+    def __init__(self, context: InMemoryAlphaZeroContext):
+        self.model_path = context.oracle_file_path
+        game = context.game
 
-        self.model = config.oracle
+        self.model: TrainableOracle = context.oracle
 
         if not isinstance(self.model, torch.nn.Module):
             raise TypeError(
                 f"Oracle class {type(self.model)} is not a torch Module."
             )
-        self.model_trainer = ModelTrainer(self.model, config.trainer)
-        self.model_updater = ModelUpdater(config.game, config)
-        self.number_of_epochs = config.number_of_epochs
+        self.model_trainer = ModelTrainer(self.model, context.trainer)
+        self.model_updater = ModelUpdater(context.game, context)
+        self.number_of_epochs = context.number_of_epochs
 
         self.report_generator: Callable[[], None]
-        if config.report_generator is None:
+        if context.report_generator is None:
             self.report_generator = lambda: None
         else:
-            self.report_generator = EvaluationLoop(game, self.model, config.report_generator)
+            self.report_generator = EvaluationLoop(game, self.model, context.report_generator)
 
         self.collector: LocalExperienceCollector
-        assert isinstance(self.model, Oracle)
-        if config.collector.number_of_processes > 1:
-            self.collector = SharedProcessCollector(game, self.model, config.collector)
+        if context.collector.number_of_processes > 1:
+            self.collector = SharedProcessCollector(game, self.model, context.collector)
         else:
-            self.collector = SingleBufferCollector(game, self.model, config.collector)
+            self.collector = SingleBufferCollector(game, self.model, context.collector)
 
     def train(self, resume: bool = True):
         if resume and os.path.exists(self.model_path):

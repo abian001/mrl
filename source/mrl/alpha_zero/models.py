@@ -5,7 +5,7 @@ from pathlib import Path
 import math
 import torch
 import numpy as np
-from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
+from mrl.alpha_zero.oracle import LegalMask, Oracle, Probabilities, TrainableOracle
 
 
 class HasCore(Protocol):
@@ -17,17 +17,17 @@ class HasCore(Protocol):
         """Returns the core data of an observation"""
 
 
-class SaveLoadModule(ABC, torch.nn.Module):
+class SaveLoadModule(TrainableOracle, ABC, torch.nn.Module):
 
-    def save(self, save_path: str | Path):
-        path = save_path if isinstance(save_path, Path) else Path(save_path)
+    def save(self, file_path: str | Path):
+        path = file_path if isinstance(file_path, Path) else Path(file_path)
 
         if not path.is_absolute():
             path.parent.mkdir(parents = True, exist_ok = True)
         torch.save(self.state_dict(), path)
 
-    def load(self, save_path: str | Path):
-        self.load_state_dict(torch.load(save_path, weights_only = True))
+    def load(self, file_path: str | Path):
+        self.load_state_dict(torch.load(file_path, weights_only = True))
         self.eval()
 
 
