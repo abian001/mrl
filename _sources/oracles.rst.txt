@@ -27,6 +27,10 @@ An oracle must implement the following protocol:
 
 Below there is a list of oracles which are built-in the mrl library.
 
+For most uses in the Game Runner, implementing this ``Oracle`` protocol
+is enough. AlphaZero training is stricter: ``run_alpha_zero`` requires a
+``TrainableOracle`` that can also save and load its parameters.
+
 ***************
  RandomRollout
 ***************
@@ -35,6 +39,10 @@ Below there is a list of oracles which are built-in the mrl library.
 
    name: RandomRollout
    number_of_rollouts: 15
+
+.. note::
+
+   This oracle is not trainable with AlphaZero.
 
 This oracle estimates the expected payoff by performing
 ``number_of_rollouts`` simulations using random actions.
@@ -55,6 +63,10 @@ over the legal actions.
        output_size: 9
        nn_width: 2
        nn_depth: 2
+
+.. note::
+
+   This oracle is trainable with AlphaZero.
 
 This oracle is implemented as a multi-layer perceptron (MLP). It takes
 as input the state of the game encoded as an ``n``-dimensional vector
@@ -92,6 +104,10 @@ dimension of the probability distribution.
        nn_width: 2
        nn_depth: 2
 
+.. note::
+
+   This oracle is trainable with AlphaZero.
+
 This oracle is implemented as a convolutional neural network. It takes
 as input the state of the game encoded as a array with shape ``(channels
 × height × width)``. Reshaping is performed automatically, so a
@@ -123,6 +139,10 @@ convolutional layer.
        output_size: 7
        nn_width: 2
        nn_depth: 2
+
+.. note::
+
+   This oracle is trainable with AlphaZero.
 
 This oracle is implemented as a convolutional neural network with
 residual connections.

@@ -145,6 +145,8 @@ individual sections are described below.</p>
 <span class="w">        </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">        </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">        </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">dirichlet_alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
+<span class="w">        </span><span class="nt">dirichlet_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
 <span class="w">    </span><span class="nt">max_buffer_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="w">    </span><span class="nt">number_of_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">    </span><span class="nt">temperature_schedule</span><span class="p">:</span>
@@ -163,8 +165,11 @@ individual sections are described below.</p>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.25</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.75</span><span class="p p-Indicator">]</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.75</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
 <span class="nt">number_of_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<span class="nt">evaluation_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
-<span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="nt">evaluation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">    </span><span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">policy</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
 <span class="nt">hdf5_path_prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tic_tac_toe_data</span>
 <span class="nt">server_hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
 <span class="nt">server_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8888</span>
@@ -222,23 +227,14 @@ training processes are used.</p></li>
 <p>This section defines the model being trained.</p>
 <p>It includes:</p>
 <ul class="simple">
-<li><p>the name of the oracle class;</p></li>
+<li><p>the name of the trainable oracle class;</p></li>
 <li><p>optional parameters required by the oracle constructor;</p></li>
 <li><p>a <code class="docutils literal notranslate"><span class="pre">file_path</span></code> specifying where the model parameters are saved.</p></li>
 </ul>
-<p>Custom oracle implementations must support the <code class="docutils literal notranslate"><span class="pre">SaveLoad</span></code> protocol so
-that their parameters can be stored and restored.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SaveLoad</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save parameters to file&quot;&quot;&quot;</span>
-
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load parameters from file&quot;&quot;&quot;</span>
-</pre></div>
-</div>
+<p>For <code class="docutils literal notranslate"><span class="pre">run_alpha_zero</span></code>, the configured object must not be just a generic
+<code class="docutils literal notranslate"><span class="pre">Oracle</span></code>. It must be a <strong>TrainableOracle</strong>, meaning an oracle whose
+parameters can also be saved and restored during training and model
+selection.</p>
 </section>
 <section id="experience-collector">
 <h2>Experience collector<a class="headerlink" href="#experience-collector" title="Link to this heading"></a></h2>
@@ -248,6 +244,8 @@ that their parameters can be stored and restored.</p>
 <span class="w">        </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">        </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">        </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">dirichlet_alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
+<span class="w">        </span><span class="nt">dirichlet_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
 <span class="w">    </span><span class="nt">max_buffer_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="w">    </span><span class="nt">number_of_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">    </span><span class="nt">temperature_schedule</span><span class="p">:</span>
@@ -367,13 +365,25 @@ oracle defined earlier in the configuration.</p>
 <p>This directory is used to store trained models and temporary data.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">HDF5</span></code> mode, intermediate model versions and training datasets are
 also written to this directory.</p>
+<p>The workspace also stores evaluation artifacts:</p>
+<ul class="simple">
+<li><p>the current best model at <code class="docutils literal notranslate"><span class="pre">oracle.file_path</span></code>;</p></li>
+<li><p>older best models at <code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_old_&lt;numeric_id&gt;</span></code>;</p></li>
+<li><p>the persisted evaluation scores for those older models at
+<code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_scores.yaml</span></code>.</p></li>
+</ul>
 </section>
 <section id="alpha-zero-evaluation">
 <span id="id1"></span><h2>Evaluation<a class="headerlink" href="#alpha-zero-evaluation" title="Link to this heading"></a></h2>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">evaluation_episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
-<span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">evaluation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">    </span><span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">policy</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
 </pre></div>
 </div>
+<p>This section defines how newly trained models are compared against older
+saved models.</p>
 <p>The model is updated at every epoch. To prevent performance regression,
 each new model is evaluated against previously saved models. If the new
 model performs better according to a set of evaluation tests, it becomes
@@ -381,16 +391,27 @@ the new best model. The previous best model is then added to the list of
 older models for future comparisons.</p>
 <p>Older models consist of all models that were previously considered the
 best at some point during training. Each older model is saved as
-&lt;oracle_file_path&gt;_old_&lt;numeric_id&gt; and remains available for testing
-after training is complete.</p>
+<code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_old_&lt;numeric_id&gt;</span></code> and remains available for
+testing after training is complete. The corresponding evaluation scores
+used to compare against those older models are saved in
+<code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_scores.yaml</span></code> so they can be restored when training
+resumes.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">evaluation_episodes</span></code>: Specifies the number of games played between
-the new model and each older model during evaluation.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_old_models</span></code>: Defines the maximum number of older models
-retained for evaluation. If this limit is exceeded, the least
-relevant models are discarded so that only the top max_old_models
-previous models are kept.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">episodes</span></code>: number of games played between the new model and each
+older model during evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_old_models</span></code>: maximum number of older best models retained for
+future comparisons.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">policy</span></code>: policy used when the candidate and incumbent models are
+compared.</p></li>
 </ul>
+<p>The policy is configurable because model quality is relative to the
+policy used to turn the model into actions. A model that performs better
+for one policy is not guaranteed to perform better for another. This can
+happen not only when comparing direct oracle play with MCTS-based play,
+but also when comparing two MCTS policies with different numbers of
+simulations.</p>
+<p>In practice, the evaluation policy should match the policy you expect to
+use when the model is deployed.</p>
 </section>
 <section id="hdf5-specific-settings">
 <h2>HDF5 specific settings<a class="headerlink" href="#hdf5-specific-settings" title="Link to this heading"></a></h2>
