@@ -324,21 +324,25 @@ For example, you can modify the following parameters:
 
 -  ``oracle. capacity. nn_width``: set to 18 (to increase the model
    capacity to learn complex strategies)
+-  ``collector. number_of_processes``: set to 4 (to speed-up data
+   collection)
 -  ``collector. mcts. number_of_simulation``: set to 225 (to obtain
    better move evaluations)
+-  ``collector. number_of_episodes``: set to 100 (to simulate more games
+   for each training epoch)
 -  ``collector. max_buffer_length``: set to 10000 (to use more training
    examples at once during training)
 -  ``trainer. max_training_epochs``: set to 100 (to ensure the model is
    trained enough for each batch of training examples)
--  ``number_of_epochs``: set to 100 (to train the model for longer)
+-  ``number_of_epochs``: set to 20 (to train the model for longer)
 
 After applying the changes described above, the following results were
 obtained in my tests:
 
--  InMemory strategy: After 40 minutes of training, the model achieved
-   an average payoff of 0.79, with a 67% win rate and a 9% loss rate
+-  InMemory strategy: After 16 minutes of training, the model achieved
+   an average payoff of 0.93, with a 90% win rate and a 4% loss rate
    against the random policy.
 
--  HDF5 strategy: After 26 minutes of training, the model achieved an
-   average payoff of 0.74, with a 69% win rate and a 21% loss rate
+-  HDF5 strategy: After 7 minutes of training, the model achieved an
+   average payoff of 0.88, with a 85% win rate and a 9% loss rate
    against the random policy.
