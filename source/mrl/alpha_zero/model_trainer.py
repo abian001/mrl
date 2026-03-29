@@ -4,6 +4,7 @@ from abc import abstractmethod
 import torch
 from torch.utils.data import Dataset, DataLoader
 import h5py
+from mrl.alpha_zero.experience_collector import get_hdf5_dataset
 
 
 class TrainDataset(Dataset):
@@ -29,8 +30,7 @@ class HDF5Dataset(Dataset):
         self.file = None
 
         with h5py.File(self.file_path, 'r') as hdf5_file:
-            observations = hdf5_file['observations']
-            assert isinstance(observations, h5py.Dataset)
+            observations = get_hdf5_dataset(hdf5_file, 'observations', self.file_path)
             self.length = len(observations)
 
     def __len__(self):
@@ -41,12 +41,9 @@ class HDF5Dataset(Dataset):
         if self.file is None:
             self.file = h5py.File(self.file_path, 'r')
 
-        observations = self.file['observations']
-        probabilities = self.file['probabilities']
-        payoffs = self.file['payoffs']
-        assert isinstance(observations, h5py.Dataset)
-        assert isinstance(probabilities, h5py.Dataset)
-        assert isinstance(payoffs, h5py.Dataset)
+        observations = get_hdf5_dataset(self.file, 'observations', self.file_path)
+        probabilities = get_hdf5_dataset(self.file, 'probabilities', self.file_path)
+        payoffs = get_hdf5_dataset(self.file, 'payoffs', self.file_path)
 
         observation = observations[idx]
         probabilities = probabilities[idx]
@@ -64,23 +61,22 @@ class HDF5Dataset(Dataset):
 class Loss:
 
     def __init__(self):
-        self.value_loss = 0.0
-        self.policy_loss = 0.0
+        self.value_loss_sum = 0.0
+        self.policy_loss_sum = 0.0
         self.count = 0
 
     def add(self, value_loss, policy_loss, batch_size):
-        final_count = self.count + batch_size
-        self.value_loss = ((self.value_loss * self.count) + value_loss) / final_count
-        self.policy_loss = ((self.policy_loss * self.count) + policy_loss) / final_count
-        self.count = final_count
+        self.value_loss_sum += value_loss * batch_size
+        self.policy_loss_sum += policy_loss * batch_size
+        self.count += batch_size
 
     @property
     def mean_value_loss(self):
-        return self.value_loss / self.count
+        return self.value_loss_sum / self.count
 
     @property
     def mean_policy_loss(self):
-        return self.policy_loss / self.count
+        return self.policy_loss_sum / self.count
 
     @property
     def mean_loss(self):

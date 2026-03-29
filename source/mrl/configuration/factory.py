@@ -4,29 +4,46 @@ import importlib
 import inspect
 from pydantic import BaseModel, create_model, ConfigDict
 from mrl.configuration.predefined import predefined_modules
+from mrl.game.game import Game
 
 
-class Configuration(BaseModel):
+class ObjectConfiguration(BaseModel, extra = 'allow'):
     name: str
     module: str | None = None
 
+    def to_data(self) -> dict[str, Any]:
+        return self.model_dump(exclude_none = True, by_alias = True)
 
-def make_object(data: dict) -> Any:
-    base_config = Configuration.model_validate(data)
-    constructor = _import(base_config)
+
+def make_object(
+    configuration: ObjectConfiguration,
+    extra_arguments: dict[str, Any] | None = None
+) -> Any:
+    constructor = _import(configuration)
 
     configuration_class = _get_configuration_class(constructor)
     if configuration_class is None:
         return constructor()
 
-    configuration = configuration_class.model_validate(data)
+    configuration_data = configuration.to_data() | (extra_arguments or {})
+    constructor_configuration = configuration_class.model_validate(configuration_data)
     return constructor(**{
-        key: getattr(configuration, key)
+        key: getattr(constructor_configuration, key)
         for key in configuration_class.model_fields
     })
 
 
-def _import(config: Configuration) -> Callable:
+def make_game(configuration: ObjectConfiguration) -> Game:
+    game = make_object(configuration)
+    if not isinstance(game, Game):
+        raise TypeError(
+            f"Invalid game class {type(game)}. "
+            "Game classes should derive from class Game."
+        )
+    return game
+
+
+def _import(config: ObjectConfiguration) -> Callable:
     if config.module is None:
         module = predefined_modules.get(config.name)
         if module is None:

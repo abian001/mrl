@@ -76,3 +76,15 @@ def hdf5_file() -> Generator[str, None, None]:
 def test_hdf5_trainer(test_observer: TestObserver, model_trainer: ModelTrainer, hdf5_file: str):
     model_trainer.train_from_hdf5(hdf5_file)
     assert test_observer.observed_loss is not None
+
+
+@pytest.mark.quick
+def test_loss_tracks_weighted_mean_over_multiple_batches():
+    loss = Loss()
+
+    loss.add(value_loss = 2.0, policy_loss = 5.0, batch_size = 2)
+    loss.add(value_loss = 8.0, policy_loss = 11.0, batch_size = 6)
+
+    assert loss.mean_value_loss == pytest.approx(6.5)
+    assert loss.mean_policy_loss == pytest.approx(9.5)
+    assert loss.mean_loss == pytest.approx(16.0)

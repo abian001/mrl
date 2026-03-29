@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 import pytest
 from mrl.tic_tac_toe.game import Player
 from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe, Perspective
@@ -82,3 +83,168 @@ def test_mcts_run(tic_tac_toe: tuple[MCTSGame, Oracle], policy: MCTSPolicy):
         }
     )
     game_loop.run()
+
+
+class FirstMoveOracle(Oracle):
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        return (1.0,) + (0.0,) * 8  # always choose the first move
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        if len(observation.action_space) == 9:  # initial state
+            return -1.0
+        return 1.0  # later states
+
+
+@pytest.mark.quick
+def test_mcts_prefers_first_move_after_two_simulations(tic_tac_toe: tuple[MCTSGame, Oracle]):
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = FirstMoveOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0,
+            temperature = 1.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    _, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 1.0
+    )
+
+    assert probabilities[0] == pytest.approx(1.0)
+    assert probabilities[1:].sum() == pytest.approx(0.0)
+
+
+class SplitRootVisitsOracle(Oracle):
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        if len(observation.action_space) == 9:
+            return (0.6, 0.4) + (0.0,) * 7
+        return tuple(1.0 for _ in range(9))
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        if len(observation.action_space) == 8:
+            return -10.0
+        return 0.0
+
+
+@pytest.mark.quick
+def test_mcts_normalizes_temperature_adjusted_root_probabilities(
+    tic_tac_toe: tuple[MCTSGame, Oracle]
+):
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = SplitRootVisitsOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0,
+            temperature = 0.5
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    _, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 0.5
+    )
+
+    assert probabilities.sum() == pytest.approx(1.0)
+    assert probabilities[0] == pytest.approx(0.5)
+    assert probabilities[1] == pytest.approx(0.5)
+    assert probabilities[2:].sum() == pytest.approx(0.0)
+
+
+class TwoMoveOracle(Oracle):
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        return (1.0, 0.0) + (0.0,) * 7
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        return 0.0
+
+
+@pytest.mark.quick
+def test_mcts_applies_dirichlet_noise_at_root(
+    tic_tac_toe: tuple[MCTSGame, Oracle],
+    monkeypatch: pytest.MonkeyPatch
+):
+    captured_alpha = None
+
+    def fake_dirichlet(alpha):
+        nonlocal captured_alpha
+        captured_alpha = alpha
+        return np.array((0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+
+    monkeypatch.setattr(np.random, 'dirichlet', fake_dirichlet)
+
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = TwoMoveOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 1,
+            pucb_constant = 1.0,
+            temperature = 1.0,
+            dirichlet_alpha = 0.3,
+            dirichlet_weight = 1.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    _, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 1.0
+    )
+
+    assert captured_alpha is not None
+    assert tuple(captured_alpha) == (0.3,) * 9
+    assert probabilities[1] == pytest.approx(1.0)
+    assert probabilities[:1].sum() == pytest.approx(0.0)
+    assert probabilities[2:].sum() == pytest.approx(0.0)
+
+
+@pytest.mark.quick
+def test_mcts_returns_one_hot_probabilities_for_zero_temperature(
+    tic_tac_toe: tuple[MCTSGame, Oracle]
+):
+    game, _ = tic_tac_toe
+    policy = NonDeterministicMCTSPolicy(
+        game = game,
+        oracle = FirstMoveOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0,
+            temperature = 0.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    action, probabilities = policy.get_action_and_probabilities(
+        MCTSObservation(state, perspective),
+        temperature = 0.0
+    )
+
+    assert action == 0
+    assert probabilities[0] == pytest.approx(1.0)
+    assert probabilities[1:].sum() == pytest.approx(0.0)

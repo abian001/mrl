@@ -55,7 +55,7 @@ class OrderCounter:
             value = self.soldier
             self.soldier += 1
         else:
-            assert False, "Invalid role passed to get_and_incr"
+            raise ValueError(f"Invalid role passed to get_and_incr: {role}.")
         return value
 
 

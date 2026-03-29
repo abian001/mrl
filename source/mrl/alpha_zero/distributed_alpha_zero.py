@@ -5,10 +5,11 @@ import asyncio
 from asyncio.subprocess import Process
 from dataclasses import dataclass
 import torch
+from mrl.alpha_zero.context import HDF5AlphaZeroContext
+from mrl.alpha_zero.oracle import TrainableOracle
 from mrl.alpha_zero.model_trainer import ModelTrainer
 from mrl.alpha_zero.model_evaluation  import EvaluationLoop
 from mrl.alpha_zero.model_updater import ModelUpdater
-from mrl.configuration.alpha_zero_configuration import HDF5AlphaZeroConfiguration
 
 
 @dataclass
@@ -35,8 +36,8 @@ class FileCollection:
 
 class ExperienceCollector:
 
-    def __init__(self, config: HDF5AlphaZeroConfiguration):
-        self.config = config
+    def __init__(self, context: HDF5AlphaZeroContext):
+        self.context = context
         self.file_queue: asyncio.Queue[str | None] = asyncio.Queue()
         self.processes: list[Process] = []
         self.wait_completion_task: asyncio.Task | None = None
@@ -48,13 +49,13 @@ class ExperienceCollector:
         self.file_queue = asyncio.Queue()
         server = await asyncio.start_server(
             self._handle_client,
-            self.config.server_hostname,
-            self.config.server_port
+            self.context.server_hostname,
+            self.context.server_port
         )
         asyncio.create_task(self._serve(server))
         self.processes = await asyncio.gather(*(
             self._spawn_hd5f_process(i)
-            for i in range(self.config.collector.number_of_processes)
+            for i in range(self.context.collector.number_of_processes)
         ))
         self.wait_completion_task = asyncio.create_task(
             self._wait_completion(server)
@@ -84,7 +85,7 @@ class ExperienceCollector:
     async def _spawn_hd5f_process(self, index):
         cmd = [
             sys.executable, '-m', 'mrl.alpha_zero.self_play_process',
-            '--config-file', self.config.config_file_path,
+            '--config-file', self.context.config_file_path,
             '--process-index', str(index)
         ]
         return await asyncio.create_subprocess_exec(*cmd)
@@ -127,33 +128,36 @@ class ExperienceCollector:
 
 class DistributedAlphaZero:
 
-    def __init__(self, config: HDF5AlphaZeroConfiguration):
-        self.config = config
-        self.model = config.oracle
+    def __init__(self, context: HDF5AlphaZeroContext):
+        self.context = context
+        self.model: TrainableOracle = context.oracle
         if not isinstance(self.model, torch.nn.Module):
             raise TypeError(
-                "Oracle class {type(self.model)} is not a torch Module. "
+                f"Oracle class {type(self.model)} is not a torch Module."
             )
-        self.model_trainer = ModelTrainer(self.model, config.trainer)
+        self.model_trainer = ModelTrainer(self.model, context.trainer)
 
-        self.model_updater = ModelUpdater(config.game, config)
+        self.model_updater = ModelUpdater(context.game, context)
 
         self.report_generator: Callable[[], None]
-        if config.report_generator is None:
+        if context.report_generator is None:
             self.report_generator = lambda: None
         else:
             self.report_generator = EvaluationLoop(
-                config.game,
+                context.game,
                 self.model,
-                config.report_generator
+                context.report_generator
             )
 
-    def train(self):
-        asyncio.run(self._train())
+    def train(self, resume: bool = True):
+        asyncio.run(self._train(resume))
 
-    async def _train(self):
-        self.model.save(self.config.oracle_file_path)
-        async with ExperienceCollector(self.config) as experience_collector:
+    async def _train(self, resume: bool = True):
+        if resume and os.path.exists(self.context.oracle_file_path):
+            self.model.load(self.context.oracle_file_path)
+        else:
+            self.model.save(self.context.oracle_file_path)
+        async with ExperienceCollector(self.context) as experience_collector:
             async for file_path in experience_collector.get_files():
                 better_model = self._process_once(file_path)
                 if better_model:

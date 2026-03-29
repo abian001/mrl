@@ -1,37 +1,43 @@
 from unittest.mock import patch
 from collections.abc import Generator
+from typing import Any, cast
 import os
 import sys
 import shutil
 import asyncio
+import random
 import pytest
 import yaml
 import h5py
+from mrl.alpha_zero.context import HDF5AlphaZeroContext
 from mrl.alpha_zero.self_play_process import main
-from mrl.configuration.alpha_zero_configuration import (
-    AlphaZeroConfiguration,
-    HDF5AlphaZeroConfiguration
-)
+from mrl.configuration.alpha_zero_configuration import AlphaZeroConfiguration
+from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
 
 
 @pytest.fixture
 def workspace() -> Generator[str, None, None]:
     workspace_path = 'test_workspace'
     if os.path.exists(workspace_path):
-        raise RuntimeError(
-            f"Workspace {workspace_path} should not exists before running the tests"
-        )
+        shutil.rmtree(workspace_path)
     os.mkdir(workspace_path)
     yield workspace_path
-    shutil.rmtree(workspace_path)
+    if os.path.exists(workspace_path):
+        shutil.rmtree(workspace_path)
 
 
 @pytest.fixture
-def configuration(
+def server_port() -> int:
+    return random.randint(20000, 50000)
+
+
+@pytest.fixture
+def context(
     number_of_epochs: int,
     number_of_simulations: int,
-    workspace: str
-) -> Generator[HDF5AlphaZeroConfiguration, None, None]:
+    workspace: str,
+    server_port: int,
+) -> Generator[HDF5AlphaZeroContext, None, None]:
     data = yaml.safe_load(f"""
         type: HDF5
         game:
@@ -45,6 +51,11 @@ def configuration(
                 nn_depth: 3
                 nn_width: 3
             file_path: self_play_test
+        evaluation:
+            episodes: 10
+            max_old_models: 2
+            policy:
+                name: DeterministicOraclePolicy
         collector:
             number_of_processes: 1
             mcts:
@@ -69,43 +80,41 @@ def configuration(
                 - [0.25, 0.75]
                 - [0.75, 2.00]
         number_of_epochs: {number_of_epochs}
-        evaluation_episodes: 10
-        max_old_models: 2
         config_file_path: test_config.json
         hdf5_path_prefix: test_data
         server_hostname: 127.0.0.1
-        server_port: 8888
+        server_port: {server_port}
         workspace_path: {workspace}
         """
     )
-    config = AlphaZeroConfiguration(alpha_zero = data).alpha_zero
-    config.save()
-    assert isinstance(config, HDF5AlphaZeroConfiguration)
+    declarative_config = AlphaZeroConfiguration.model_validate(data)
+    context = AlphaZeroRunnerFactory().make_context(declarative_config)
+    assert isinstance(context, HDF5AlphaZeroContext)
 
-    yield config
-    assert config.config_file_path is not None
-    if os.path.exists(config.config_file_path):
-        os.remove(config.config_file_path)
+    yield context
+    assert context.config_file_path is not None
+    if os.path.exists(context.config_file_path):
+        os.remove(context.config_file_path)
 
 
 @pytest.fixture
-def oracle_file(configuration: HDF5AlphaZeroConfiguration) -> Generator[str, None, None]:
-    model = configuration.oracle
-    model.save(configuration.oracle_file_path)
-    assert configuration.oracle_file_path is not None
+def oracle_file(context: HDF5AlphaZeroContext) -> Generator[str, None, None]:
+    model = cast(Any, context.oracle)
+    model.save(context.oracle_file_path)
+    assert context.oracle_file_path is not None
 
-    yield str(configuration.oracle_file_path)
-    if os.path.exists(configuration.oracle_file_path):
-        os.remove(configuration.oracle_file_path)
+    yield str(context.oracle_file_path)
+    if os.path.exists(context.oracle_file_path):
+        os.remove(context.oracle_file_path)
 
 
 @pytest.fixture
 def expected_hdf5_files(
-    configuration: HDF5AlphaZeroConfiguration
+    context: HDF5AlphaZeroContext
 ) -> Generator[tuple[str, ...], None, None]:
     expected_files = tuple(
-        f"{configuration.workspace_path}/{configuration.hdf5_path_prefix}_1_{i}.h5"
-        for i in range(configuration.number_of_epochs)
+        f"{context.workspace_path}/{context.hdf5_path_prefix}_1_{i}.h5"
+        for i in range(context.number_of_epochs)
     )
 
     yield expected_files
@@ -118,12 +127,12 @@ def expected_hdf5_files(
 @pytest.mark.asyncio
 @pytest.mark.quick
 async def test_play_process(
-    configuration: HDF5AlphaZeroConfiguration,
+    context: HDF5AlphaZeroContext,
     expected_hdf5_files: tuple[str, ...]
 ):
     with patch("mrl.alpha_zero.self_play_process.ModelLoader"):
         await main([
-            '--config-file', str(configuration.config_file_path),
+            '--config-file', str(context.config_file_path),
             '--process-index', '1',
         ])
     _assert_expected_files_are_not_empty(expected_hdf5_files)
@@ -143,24 +152,25 @@ def _assert_expected_files_are_not_empty(expected_files: tuple[str, ...]):
 @pytest.mark.asyncio
 @pytest.mark.slow
 async def test_replace_model(
-    configuration: HDF5AlphaZeroConfiguration,
+    context: HDF5AlphaZeroContext,
     oracle_file: str,
     expected_hdf5_files: tuple[str, ...]
 ):
-    assert oracle_file == str(configuration.oracle_file_path)
-    test = TestReplaceModel(configuration)
+    assert oracle_file == str(context.oracle_file_path)
+    test = TestReplaceModel(context)
     await test.run()
     _assert_expected_files_are_not_empty(expected_hdf5_files)
 
 
 class TestReplaceModel:
 
-    def __init__(self, configuration: HDF5AlphaZeroConfiguration):
+    def __init__(self, context: HDF5AlphaZeroContext):
         self.messages: list[str] = []
-        self.config_file_path = configuration.config_file_path
-        self.oracle_file_path = configuration.oracle_file_path
-        self.oracle = configuration.oracle
-        self.game = configuration.game
+        self.config_file_path = context.config_file_path
+        self.oracle_file_path = context.oracle_file_path
+        self.oracle = context.oracle
+        self.game = context.game
+        self.server_port = context.server_port
 
     async def run(self):
         early_timestamp = os.path.getmtime(self.oracle_file_path)
@@ -170,7 +180,11 @@ class TestReplaceModel:
             '--process-index', '1',
             '--verbose'
         ]
-        server = await asyncio.start_server(self._handle_client, "127.0.0.1", 8888)
+        server = await asyncio.start_server(
+            self._handle_client,
+            "127.0.0.1",
+            self.server_port,
+        )
         asyncio.create_task(self._serve(server))
         process = await asyncio.create_subprocess_exec(*cmd)
         await process.wait()

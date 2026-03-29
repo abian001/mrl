@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Generic, Protocol, Sequence
 import numpy as np
 from mrl.game.game import Observation
@@ -26,6 +27,17 @@ class Oracle(ABC, Generic[Observation]):
         """Returns the probabilities for each action.
            The legal mask defines which actions are allowed.
         """
+
+
+class TrainableOracle(Oracle[Observation], ABC):
+
+    @abstractmethod
+    def save(self, file_path: str | Path) -> None:
+        """Save model state to disk."""
+
+    @abstractmethod
+    def load(self, file_path: str | Path) -> None:
+        """Load model state from disk."""
 
 
 class HasLegalMask(Protocol):

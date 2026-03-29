@@ -7,7 +7,7 @@ import time
 import h5py
 import pytest
 from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
-from mrl.alpha_zero.mcts import MCTSGame
+from mrl.alpha_zero.mcts import MCTSGame, MCTSConfiguration
 from mrl.alpha_zero.mcts_observation import MCTSObservation
 from mrl.alpha_zero.experience_collector import (
     CollectorConfiguration,
@@ -15,7 +15,6 @@ from mrl.alpha_zero.experience_collector import (
     make_hdf5_collector,
 )
 from mrl.alpha_zero.mcts_test import TestOracle
-from mrl.configuration.alpha_zero_configuration import MCTSConfiguration
 from mrl.xiangqi.mcts_game import MCTSXiangqi
 from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe
 
@@ -99,9 +98,10 @@ def test_buffer_collector(test_data: CorrectnessTestData):
     collector = make_buffer_collector(game, oracle, test_data.configuration)
     buffer, buffer_ready = collector.collect()
     assert buffer_ready
-    assert tuple(tuple(record[0]) for record in buffer) == test_data.observations
-    assert tuple(tuple(record[1]) for record in buffer) == test_data.probabilities
-    assert tuple(record[2] for record in buffer) == test_data.payoffs
+    records = tuple(buffer[index] for index in range(len(buffer)))
+    assert tuple(tuple(record[0]) for record in records) == test_data.observations
+    assert tuple(tuple(record[1]) for record in records) == test_data.probabilities
+    assert tuple(record[2] for record in records) == test_data.payoffs
 
 
 @dataclass

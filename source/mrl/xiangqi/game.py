@@ -148,7 +148,11 @@ class Board:
     @classmethod
     def _make_initial_board(cls, initial_state: str | None) -> Tuple[Tuple[Cell, ...], ...]:
         initial_state = initial_state or cls._initial_state
-        assert len(initial_state) == cls._size
+        if len(initial_state) != cls._size:
+            raise ValueError(
+                f"Invalid xiangqi initial state length {len(initial_state)}. "
+                f"Expected {cls._size} characters."
+            )
         state_iterator = iter(initial_state)
         return tuple(
             tuple(
@@ -449,7 +453,7 @@ def _make_token_actions(token: Token, position: Position, board: Board):
         return _make_cannon_actions(position, token.color, board)
     if token.role == Role.GENERAL:
         return _make_general_actions(position, token.color, board)
-    assert False, "Invalid token"
+    raise ValueError(f"Invalid token role {token.role}.")
 
 
 def _make_general_actions(general_pos: Position, active_player: Player, board: Board):

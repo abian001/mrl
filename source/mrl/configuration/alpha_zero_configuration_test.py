@@ -1,12 +1,7 @@
 from pathlib import Path
-from typing import Generator
-import os
 import yaml
 import pytest
 from mrl.configuration.alpha_zero_configuration import AlphaZeroConfiguration
-from mrl.tic_tac_toe.game import Player
-from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe
-from mrl.alpha_zero.models import OpenSpielConv
 
 
 @pytest.fixture
@@ -41,7 +36,6 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
                 loss_observer: null
                 learning_rate: 1e-3
                 loading_workers: 1
-            evaluation_episodes: 10
             report_generator:
                 oracle_led_players: ['X']
                 number_of_tests: 10
@@ -52,7 +46,11 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
             manual_play:
                 player: 'O'
             number_of_epochs: 10
-            max_old_models: 5
+            evaluation:
+                episodes: 10
+                max_old_models: 5
+                policy:
+                    name: DeterministicOraclePolicy
             hdf5_path_prefix: data_file
             server_hostname: 127.0.0.1
             server_port: 8888
@@ -60,26 +58,16 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
         """)
 
 
-@pytest.fixture
-def _clear_hd5f_config(config_file_path: str) -> Generator[None, None, None]:
-    yield
-    if os.path.exists(config_file_path):
-        os.remove(config_file_path)
-
-
 @pytest.mark.parametrize('memory_type', ['InMemory', 'HDF5'])
 @pytest.mark.parametrize('config_file_path', ['test_config.yaml'])
 @pytest.mark.quick
-def test_load_configuration(memory_type: str, configuration: dict, _clear_hd5f_config: None):
-    config = AlphaZeroConfiguration.model_validate({'alpha_zero': configuration})
-    assert config.alpha_zero.report_generator is not None
-    assert config.alpha_zero.report_generator.buckets is not None
+def test_load_configuration(memory_type: str, configuration: dict):
+    config = AlphaZeroConfiguration.model_validate(configuration)
+    assert config.report_generator is not None
+    assert config.report_generator.buckets is not None
     config.model_dump()  # serialization succeeds
-    assert config.alpha_zero.type == memory_type
-    assert config.alpha_zero.collector.temperature_schedule == ((0, 1.0),)
-    assert config.alpha_zero.report_generator.oracle_led_players == (Player.X,)
-    assert config.alpha_zero.oracle_file_path == Path("workspace/tic_tac_toe_model")
-    assert config.alpha_zero.report_generator.buckets[0][0] == float("-inf")
-    assert config.alpha_zero.workspace_path == Path("workspace")
-    assert isinstance(config.alpha_zero.game, MCTSTicTacToe)
-    assert isinstance(config.alpha_zero.oracle, OpenSpielConv)
+    assert config.type == memory_type
+    assert config.collector.temperature_schedule == ((0, 1.0),)
+    assert config.report_generator.oracle_led_players == ('X',)
+    assert config.report_generator.buckets[0][0] == float("-inf")
+    assert config.workspace_path == Path("workspace")

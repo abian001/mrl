@@ -55,6 +55,8 @@ individual sections are described below.
            number_of_simulations: 1
            pucb_constant: 1.0
            discount_factor: 1.0
+           dirichlet_alpha: 0.3
+           dirichlet_weight: 0.25
        max_buffer_length: 100
        number_of_episodes: 1
        temperature_schedule:
@@ -73,8 +75,11 @@ individual sections are described below.
            - [0.25, 0.75]
            - [0.75, +inf]
    number_of_epochs: 1
-   evaluation_episodes: 100
-   max_old_models: 10
+   evaluation:
+       episodes: 100
+       max_old_models: 10
+       policy:
+           name: DeterministicOraclePolicy
    hdf5_path_prefix: tic_tac_toe_data
    server_hostname: 127.0.0.1
    server_port: 8888
@@ -141,24 +146,14 @@ This section defines the model being trained.
 
 It includes:
 
--  the name of the oracle class;
+-  the name of the trainable oracle class;
 -  optional parameters required by the oracle constructor;
 -  a ``file_path`` specifying where the model parameters are saved.
 
-Custom oracle implementations must support the ``SaveLoad`` protocol so
-that their parameters can be stored and restored.
-
-.. code:: python
-
-   class SaveLoad(Protocol):
-
-       @abstractmethod
-       def save(self, save_path: str | Path):
-           """Save parameters to file"""
-
-       @abstractmethod
-       def load(self, save_path: str | Path):
-           """Load parameters from file"""
+For ``run_alpha_zero``, the configured object must not be just a generic
+``Oracle``. It must be a **TrainableOracle**, meaning an oracle whose
+parameters can also be saved and restored during training and model
+selection.
 
 **********************
  Experience collector
@@ -172,6 +167,8 @@ that their parameters can be stored and restored.
            number_of_simulations: 1
            pucb_constant: 1.0
            discount_factor: 1.0
+           dirichlet_alpha: 0.3
+           dirichlet_weight: 0.25
        max_buffer_length: 100
        number_of_episodes: 1
        temperature_schedule:
@@ -313,6 +310,13 @@ This directory is used to store trained models and temporary data.
 In ``HDF5`` mode, intermediate model versions and training datasets are
 also written to this directory.
 
+The workspace also stores evaluation artifacts:
+
+-  the current best model at ``oracle.file_path``;
+-  older best models at ``<oracle_file_path>_old_<numeric_id>``;
+-  the persisted evaluation scores for those older models at
+   ``<oracle_file_path>_scores.yaml``.
+
 .. _alpha_zero_evaluation:
 
 ************
@@ -321,8 +325,14 @@ also written to this directory.
 
 .. code:: yaml
 
-   evaluation_episodes: 100
-   max_old_models: 10
+   evaluation:
+       episodes: 100
+       max_old_models: 10
+       policy:
+           name: DeterministicOraclePolicy
+
+This section defines how newly trained models are compared against older
+saved models.
 
 The model is updated at every epoch. To prevent performance regression,
 each new model is evaluated against previously saved models. If the new
@@ -332,16 +342,28 @@ older models for future comparisons.
 
 Older models consist of all models that were previously considered the
 best at some point during training. Each older model is saved as
-<oracle_file_path>_old_<numeric_id> and remains available for testing
-after training is complete.
+``<oracle_file_path>_old_<numeric_id>`` and remains available for
+testing after training is complete. The corresponding evaluation scores
+used to compare against those older models are saved in
+``<oracle_file_path>_scores.yaml`` so they can be restored when training
+resumes.
 
--  ``evaluation_episodes``: Specifies the number of games played between
-   the new model and each older model during evaluation.
+-  ``episodes``: number of games played between the new model and each
+   older model during evaluation.
+-  ``max_old_models``: maximum number of older best models retained for
+   future comparisons.
+-  ``policy``: policy used when the candidate and incumbent models are
+   compared.
 
--  ``max_old_models``: Defines the maximum number of older models
-   retained for evaluation. If this limit is exceeded, the least
-   relevant models are discarded so that only the top max_old_models
-   previous models are kept.
+The policy is configurable because model quality is relative to the
+policy used to turn the model into actions. A model that performs better
+for one policy is not guaranteed to perform better for another. This can
+happen not only when comparing direct oracle play with MCTS-based play,
+but also when comparing two MCTS policies with different numbers of
+simulations.
+
+In practice, the evaluation policy should match the policy you expect to
+use when the model is deployed.
 
 ************************
  HDF5 specific settings

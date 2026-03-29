@@ -3,7 +3,7 @@ from importlib.resources import files, as_file
 from pathlib import Path
 import shutil
 import argparse
-from mrl.test_utils.exit_handler import try_main
+from mrl.test_utils.error_handler import try_main
 
 
 def main():
