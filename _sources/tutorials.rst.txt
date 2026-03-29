@@ -326,7 +326,7 @@ For example, you can modify the following parameters:
    capacity to learn complex strategies)
 -  ``collector. number_of_processes``: set to 4 (to speed-up data
    collection)
--  ``collector. mcts. number_of_simulation``: set to 225 (to obtain
+-  ``collector. mcts. number_of_simulations``: set to 225 (to obtain
    better move evaluations)
 -  ``collector. number_of_episodes``: set to 100 (to simulate more games
    for each training epoch)
