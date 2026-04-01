@@ -2,7 +2,7 @@ from typing import Generic, Mapping
 from mrl.game.game import (
     GlobalObserver,
     Player,
-    PayoffPerspective
+    RewardPerspective
 )
 
 
@@ -10,7 +10,7 @@ class MultiResultTracker(GlobalObserver, Generic[Player]):
 
     def __init__(
         self,
-        perspectives: Mapping[Player, PayoffPerspective],
+        perspectives: Mapping[Player, RewardPerspective],
         buckets: tuple[tuple[float, float], ...]
     ):
         self.trackers = {
@@ -36,7 +36,7 @@ class ResultTracker(GlobalObserver, Generic[Player]):
     def __init__(
         self,
         model_led_player: Player,
-        model_led_perspective: PayoffPerspective,
+        model_led_perspective: RewardPerspective,
         buckets: tuple[tuple[float, float], ...] | None = None
     ):
         self.buckets = buckets or tuple()
@@ -59,11 +59,11 @@ class ResultTracker(GlobalObserver, Generic[Player]):
         if not state.is_final:
             return
         self.total += 1
-        payoff = self.model_led_perspective.get_payoff(state)
-        self.payoff += payoff
+        reward = self.model_led_perspective.get_reward(state)
+        self.payoff += reward
         bucket_index = next(
             i for (i, bucket) in enumerate (self.buckets)
-            if bucket[0] <= payoff < bucket[1]
+            if bucket[0] <= reward < bucket[1]
         )
         self.statistics[bucket_index] += 1
 

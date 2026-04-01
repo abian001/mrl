@@ -1,4 +1,4 @@
-from typing import Protocol, TypeVar, Any
+from typing import Protocol, TypeVar, Any, Generic, Iterator
 from abc import abstractmethod
 from collections import deque
 import multiprocessing
@@ -8,8 +8,14 @@ import pickle
 import numpy as np
 import h5py
 from pydantic import BaseModel, field_serializer
-from mrl.alpha_zero.oracle import Oracle
+from mrl.game.game import Player, Reward, FinalCheckable, HasActivePlayer
+from mrl.alpha_zero.oracle import Oracle, Payoff, Probabilities
 from mrl.alpha_zero.mcts import NonDeterministicMCTSPolicy, MCTSGame, MCTSConfiguration
+
+
+RewardExperience = tuple[np.ndarray, Probabilities, Reward]
+RewardBuffers = dict[Player, list[RewardExperience]]
+PayoffExperience = tuple[np.ndarray, Probabilities, Payoff]
 
 
 class CollectorConfiguration(BaseModel):
@@ -71,9 +77,18 @@ class TemperatureSchedule:
         )[1]
 
 
-class ExperienceCollector:
+class MCTSState(FinalCheckable, HasActivePlayer, Protocol):
+    pass
 
-    def __init__(self, game: MCTSGame, model: Oracle, config: CollectorConfiguration):
+
+class ExperienceCollector(Generic[Player]):
+
+    def __init__(
+        self,
+        game: MCTSGame[MCTSState, Player],
+        model: Oracle,
+        config: CollectorConfiguration
+    ) -> None:
         self.config = config
         self.game = game
         self.policy = NonDeterministicMCTSPolicy(
@@ -85,7 +100,7 @@ class ExperienceCollector:
         self.discount_factor = config.mcts.discount_factor
         self.temperature_schedule = TemperatureSchedule(self.config.temperature_schedule)
 
-    def _play_one_episode(self, buffers):
+    def _play_one_episode(self, buffers: RewardBuffers[Player]) -> MCTSState:
         state = self.game.make_initial_state()
         step = 0
         while not state.is_final:
@@ -95,7 +110,7 @@ class ExperienceCollector:
                 temperature = self.temperature_schedule(step)
             )
             buffers[state.active_player].append(
-                (observation.core, probabilities, observation.payoff)
+                (observation.core, probabilities, observation.reward)
             )
             state = self.game.update(state, action)
             step += 1
@@ -118,6 +133,10 @@ class Buffer(Protocol[Item]):
     @abstractmethod
     def __getitem__(self, index: int, /) -> Item:
         """Returns an item"""
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[Item]:
+        """Iterates through the items in the buffer"""
 
 
 class LocalExperienceCollector(Protocol):
@@ -142,21 +161,21 @@ class DistributedExperienceCollector(Protocol):
         """Collect the episodes and saves them to the file"""
 
 
-class SingleProcessCollector(ExperienceCollector):
+class SingleProcessCollector(ExperienceCollector, Generic[Player]):
 
-    buffer: Buffer[Any]
+    buffer: Buffer[PayoffExperience]
 
-    def _collect_once(self):
-        buffers = {p: [] for p in self.perspectives}
+    def _collect_once(self) -> None:
+        buffers: RewardBuffers = {p: [] for p in self.perspectives}
         last_state = self._play_one_episode(buffers)
         self._update_buffer(buffers, last_state)
 
-    def _update_buffer(self, buffers, last_state):
+    def _update_buffer(self, buffers: RewardBuffers[Player], last_state: MCTSState) -> None:
         for (p, buffer) in buffers.items():
-            cumulated_payoff = self.perspectives[p].get_observation(last_state).payoff
-            for (observation, probabilities, payoff) in reversed(buffer):
-                cumulated_payoff = payoff + self.discount_factor * cumulated_payoff
-                self.buffer.append((observation, probabilities, cumulated_payoff))
+            payoff = self.perspectives[p].get_observation(last_state).reward
+            for (observation, probabilities, reward) in reversed(buffer):
+                payoff = reward + self.discount_factor * payoff
+                self.buffer.append((observation, probabilities, payoff))
 
 
 class SingleBufferCollector(SingleProcessCollector):
@@ -230,7 +249,7 @@ class SingleHDF5Collector(SingleProcessCollector):
             probabilities[current_size:new_size, :] = new_probabilities
             payoffs[current_size:new_size, :] = new_payoffs
 
-    def _save_buffer_to_hdf5(self):
+    def _save_buffer_to_hdf5(self) -> None:
         observations = np.stack(tuple(x[0] for x in self.buffer))
         probabilities = np.stack(tuple(x[1] for x in self.buffer))
         payoffs = np.stack(tuple(np.array([x[2]], dtype = float) for x in self.buffer))
@@ -240,7 +259,7 @@ class SingleHDF5Collector(SingleProcessCollector):
             self._create_hdf5_file(observations, probabilities, payoffs)
         self.buffer = []
 
-    def _collect_once(self):
+    def _collect_once(self) -> None:
         super()._collect_once()
         self.episode_count += 1
         if (
@@ -256,16 +275,18 @@ class SharedBuffer:
         self.manager = multiprocessing.Manager()
         self.lock = multiprocessing.Lock()
         self.process_space = config.max_buffer_length // config.number_of_processes
-        self.buffer = self.manager.list((None,) * (self.process_space * config.number_of_processes))
+        self.buffer: multiprocessing.managers.ListProxy[None | PayoffExperience] = \
+            self.manager.list((None,) * (self.process_space * config.number_of_processes))
         self.indices = self.manager.list(tuple(
             i * self.process_space for i in range(config.number_of_processes)
         ))
-        self.filled = self.manager.list((False,) * config.number_of_processes)
+        self.filled: multiprocessing.managers.ListProxy[bool] = \
+            self.manager.list((False,) * config.number_of_processes)
 
-    def is_filled(self):
+    def is_filled(self) -> bool:
         return all(self.filled)
 
-    def append(self, index, record):
+    def append(self, index: int, record: PayoffExperience) -> None:
         self.buffer[self.indices[index]] = record
         self.indices[index] = (
             ((self.indices[index] + 1) % self.process_space) +
@@ -275,14 +296,14 @@ class SharedBuffer:
             self.filled[index] or \
             self.indices[index] == (index * self.process_space)
 
-    def save(self, file_path):
+    def save(self, file_path: str) -> None:
         with open(file_path, "wb") as save_file:
             pickle.dump(
                 (self.process_space, list(self.buffer), list(self.indices), list(self.filled)),
                 save_file
             )
 
-    def load(self, file_path: str):
+    def load(self, file_path: str) -> None:
         with open(file_path, "rb") as save_file:
             data = pickle.load(save_file)
             process_space, buffer, indices, filled = data[0], data[1], data[2], data[3]
@@ -292,11 +313,16 @@ class SharedBuffer:
         self.filled = self.manager.list(filled)
 
 
-class SharedProcessCollector(ExperienceCollector):
+class SharedProcessCollector(ExperienceCollector, Generic[Player]):
 
     end_of_episode = None
 
-    def __init__(self, game: MCTSGame, model: Oracle, config: CollectorConfiguration):
+    def __init__(
+        self,
+        game: MCTSGame[MCTSState, Player],
+        model: Oracle,
+        config: CollectorConfiguration
+    ) -> None:
         super().__init__(game, model, config)
         self.buffer = SharedBuffer(config)
         self.episodes_per_process = \
@@ -316,27 +342,24 @@ class SharedProcessCollector(ExperienceCollector):
             process.join()
         return self.buffer.buffer, self.buffer.is_filled()
 
-    def _process_play(self, process_index):
+    def _process_play(self, process_index: int) -> None:
         np.random.seed(int(time.time()))
         for _ in range(self.episodes_per_process):
-            buffers = {p: [] for p in self.perspectives}
+            buffers: RewardBuffers = {p: [] for p in self.perspectives}
             last_state = self._play_one_episode(buffers)
             self._update_buffer(buffers, last_state, process_index)
 
-    def _append_end_of_episode(self, buffers, last_state):
+    def _update_buffer(
+        self,
+        buffers: RewardBuffers[Player],
+        last_state: MCTSState,
+        process_index: int
+    ) -> None:
         for (p, buffer) in buffers.items():
-            buffer.append((
-                self.end_of_episode,
-                self.end_of_episode,
-                self.perspectives[p].get_observation(last_state).payoff
-            ))
-
-    def _update_buffer(self, buffers, last_state, process_index):
-        for (p, buffer) in buffers.items():
-            cumulated_payoff = self.perspectives[p].get_observation(last_state).payoff
-            for (observation, probabilities, payoff) in reversed(buffer):
-                cumulated_payoff = payoff + self.discount_factor * cumulated_payoff
-                self.buffer.append(process_index, (observation, probabilities, cumulated_payoff))
+            payoff = self.perspectives[p].get_observation(last_state).reward
+            for (observation, probabilities, reward) in reversed(buffer):
+                payoff = reward + self.discount_factor * payoff
+                self.buffer.append(process_index, (observation, probabilities, payoff))
 
     def save_training_data(self, file_path: str) -> None:
         self.buffer.save(file_path)
@@ -352,7 +375,7 @@ class MultiHDF5Collector:
         self.model = model
         self.config = config
 
-    def collect(self, file_path) -> None:
+    def collect(self, file_path: str) -> None:
         file_root = '.'.join(file_path.split('.')[:-1])
         collectors = tuple(
             SingleHDF5Collector(self.game, self.model, self.config)

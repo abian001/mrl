@@ -52,7 +52,7 @@ class BasePerspective(ABC, Generic[Observation]):
     def get_action_space(self, state: State) -> tuple[Action, ...]:
         return tuple(i for i in range(9) if state.board[i] == Symbol.EMPTY)
 
-    def get_payoff(self, state: State) -> float:
+    def get_reward(self, state: State) -> float:
         if state.winner == self.player:
             return 1.0
         if state.is_final and state.winner is None:

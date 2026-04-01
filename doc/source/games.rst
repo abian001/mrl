@@ -71,11 +71,11 @@ following protocols:
            """Updates the game state according to the action of the active player"""
 
 
-    class PayoffObservable(Protocol[StateContra, Player, ObservationCo]):
+    class RewardObservable(Protocol[StateContra, Player, ObservationCo]):
 
         @abstractmethod
-        def get_perspectives(self) -> Mapping[Player, PayoffPerspective[StateContra, ObservationCo]]:
-            """Return the player payoff perspectives."""
+        def get_perspectives(self) -> Mapping[Player, RewardPerspective[StateContra, ObservationCo]]:
+            """Return the player perspectives."""
 
 In addition the perspective for an MCTS game must implemet the following
 protocols:
@@ -83,11 +83,11 @@ protocols:
 .. code:: python
 
    @runtime_checkable
-   class PayoffPerspective(Perspective, Protocol[StateContra, ObservationCo]):
+   class RewardPerspective(Perspective, Protocol[StateContra, ObservationCo]):
 
        @abstractmethod
-       def get_payoff(self, state: StateContra) -> float:
-           """Returns observed payoff in the given state"""
+       def get_reward(self, state: StateContra) -> Reward:
+           """Returns observed reward in the given state"""
 
    @runtime_checkable
    class HasActionSpaceDimension(Protocol):

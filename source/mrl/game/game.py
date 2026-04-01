@@ -126,20 +126,23 @@ class HasActionSpaceDimension(Protocol):
         """Returns the number of distinct actions allowed in the action space."""
 
 
+Reward = float
+
+
 @runtime_checkable
-class PayoffPerspective(Perspective, Protocol[StateContra, ObservationCo]):
+class RewardPerspective(Perspective, Protocol[StateContra, ObservationCo]):
     """Protocol for a game perspective."""
 
     @abstractmethod
-    def get_payoff(self, state: StateContra) -> float:
-        """Returns observed payoff in the given state"""
+    def get_reward(self, state: StateContra) -> Reward:
+        """Returns observed reward in the given state"""
 
 
-class PayoffObservable(Protocol[StateContra, Player, ObservationCo]):
+class RewardObservable(Protocol[StateContra, Player, ObservationCo]):
     """Protocol for a game"""
 
     @abstractmethod
-    def get_perspectives(self) -> Mapping[Player, PayoffPerspective[StateContra, ObservationCo]]:
+    def get_perspectives(self) -> Mapping[Player, RewardPerspective[StateContra, ObservationCo]]:
         """Return the player payoff perspectives."""
 
 

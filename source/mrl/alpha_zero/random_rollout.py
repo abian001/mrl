@@ -6,7 +6,7 @@ from mrl.game.game import (
     TurnBased,
     Restorable,
     ActionContra,
-    PayoffObservable
+    RewardObservable
 )
 from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
 from mrl.alpha_zero.mcts_observation import MCTSObservation
@@ -15,7 +15,7 @@ from mrl.alpha_zero.mcts_observation import MCTSObservation
 class Rolloutable(
     TurnBased[State, ActionContra],
     Restorable[State, MCTSObservation],
-    PayoffObservable[State, Player, MCTSObservation],
+    RewardObservable[State, Player, MCTSObservation],
     Protocol[State, Player, ActionContra]
 ):
     pass
@@ -42,7 +42,7 @@ class RandomRollout(Oracle):
             action_space = perspective.get_action_space(state)
             action = np.random.choice(action_space)
             state = self.game.update(state, action)
-        return self.perspectives[initial_player].get_payoff(state)
+        return self.perspectives[initial_player].get_reward(state)
 
     def get_probabilities(
         self,

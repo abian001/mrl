@@ -176,7 +176,7 @@ class ScoreObserver(GlobalObserver):
 
     def notify_state(self, state) -> None:
         if state.is_final:
-            self.payoff += self.perspective.get_payoff(state)
+            self.payoff += self.perspective.get_reward(state)
 
     def get_payoff(self):
         return self.payoff

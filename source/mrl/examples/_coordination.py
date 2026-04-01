@@ -39,7 +39,7 @@ class Perspective:
     def get_observation(self, state: State) -> Observation:
         return Observation(state)
 
-    def get_payoff(self, state: State) -> float:
+    def get_reward(self, state: State) -> float:
         if len(state.history) == 0:
             return 0.0
         return len([x for x in state.history if x[0] == x[1]]) / len(state.history)

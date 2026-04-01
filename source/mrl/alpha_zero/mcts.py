@@ -11,7 +11,7 @@ from mrl.game.game import (
     InteractivePolicy,
     TurnBased,
     Game,
-    PayoffObservable
+    RewardObservable
 )
 from mrl.game.game_loop import TurnBasedState
 from mrl.alpha_zero.oracle import Oracle, DiscreteActionSpace
@@ -21,15 +21,9 @@ from mrl.alpha_zero.mcts_observation import MCTSObservation, MCTSPerspective
 Action = int
 
 
-class OracleEvent(StopEvent):
-
-    def __init__(self, payoff):
-        self.payoff = payoff
-
-
 @runtime_checkable
 class MCTSGame(
-    PayoffObservable[State, Player, MCTSObservation],
+    RewardObservable[State, Player, MCTSObservation],
     Game[State, Player],
     TurnBased[State, Action],
     Restorable[State, MCTSObservation],
@@ -38,7 +32,7 @@ class MCTSGame(
 
     @abstractmethod
     def get_perspectives(self) -> Mapping[Player, MCTSPerspective[State, Action]]:
-        """Return the player payoff perspectives."""
+        """Return the player MCTS perspectives."""
 
 
 
@@ -204,26 +198,27 @@ class MCTSPolicy(Generic[Player]):
             observation = self.perspectives[state.active_player].get_observation(state)
             action_space = self.perspectives[state.active_player].get_action_space(state)
             action, state_node, action_node = self.pucb_policy(observation, action_space)
-            buffers[state.active_player].append((observation.payoff, state_node, action_node))
+            buffers[state.active_player].append((observation.reward, state_node, action_node))
             state = self.game.update(state, action)
             if action_node.visits == 0:
                 break
 
-        last_payoffs = self._get_last_payoffs(state)
-        self._update_nodes(buffers, last_payoffs)
-    def _update_nodes(self, buffers: dict[Player, list], last_payoffs: dict[Player, float]):
+        last_rewards = self._get_last_rewards(state)
+        self._update_nodes(buffers, last_rewards)
+
+    def _update_nodes(self, buffers: dict[Player, list], last_rewards: dict[Player, float]):
         for (p, buffer) in buffers.items():
-            cumulated_payoff = last_payoffs[p]
-            for (payoff, state_node, action_node) in reversed(buffer):
-                action_node.payoff += cumulated_payoff
+            payoff = last_rewards[p]
+            for (reward, state_node, action_node) in reversed(buffer):
+                action_node.payoff += payoff
                 action_node.visits += 1
                 state_node.visits += 1
-                cumulated_payoff = payoff + self.discount_factor * cumulated_payoff
+                payoff = reward + self.discount_factor * payoff
 
-    def _get_last_payoffs(self, state: TurnBasedState):
+    def _get_last_rewards(self, state: TurnBasedState):
         if state.is_final:
             return {
-                p: perspective.get_observation(state).payoff
+                p: perspective.get_observation(state).reward
                 for (p, perspective) in self.perspectives.items()
             }
         return {

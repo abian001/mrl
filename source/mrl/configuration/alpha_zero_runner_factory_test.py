@@ -25,7 +25,7 @@ class _PerspectiveWithDimension:
     def get_action_space(self, _state):
         raise NotImplementedError
 
-    def get_payoff(self, _state):
+    def get_reward(self, _state):
         raise NotImplementedError
 
 

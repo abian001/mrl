@@ -10,7 +10,7 @@ from mrl.configuration.game_runner_configuration import GameRunnerConfiguration
 from mrl.configuration.game_runner_factory import GameRunnerFactory
 from mrl.test_utils.policies import ManualPolicy
 from mrl.test_utils.error_handler import try_main, describe_exception
-from mrl.alpha_zero.mcts_observation import PayoffPerspective
+from mrl.alpha_zero.mcts_observation import RewardPerspective
 
 
 def main():
@@ -166,10 +166,10 @@ class GameRunner(Generic[Player]):  # pylint: disable=too-many-instance-attribut
             self._run_gui_play()
 
     def _run_evaluation(self) -> None:
-        observed_perspectives: dict[Player, PayoffPerspective] = {}
+        observed_perspectives: dict[Player, RewardPerspective] = {}
         for (player, perspective) in self.game.get_perspectives().items():
             if player in self.observed_players:
-                if not isinstance(perspective, PayoffPerspective):
+                if not isinstance(perspective, RewardPerspective):
                     raise TypeError(
                         f"EVALUATE mode was requested, but the player {player}'s "
                         "perspective does not implemet the get_payoff method. "

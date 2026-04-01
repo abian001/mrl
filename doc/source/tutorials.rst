@@ -188,8 +188,10 @@ a valid perspective must implement two methods:
 
 This is a full-information game, so the observation is identical to the
 state. If you want to evaluate play statistics using the game runner,
-you must also implement a ``get_payoff`` method that returns a numerical
-value representing the outcome of the game.
+you must also implement a ``get_reward`` method that returns a numerical
+value representing the reward obtained upon reaching a state. The final
+payoff is defined as the sum of all rewards accumulated throughout the
+game.
 
 The game class itself represents the game rules. It must implement:
 
@@ -232,7 +234,7 @@ You can also play the game in the terminal:
 The coordination game described above is not suitable for AlphaZero.
 
 The AlphaZero algorithm implemented here only supports turn-based,
-restorable games with a discrete action space and a payoff-observable
+restorable games with a discrete action space and a reward-observable
 perspective. The perspective must also be able to encode the state and
 action space in an array format suitable for neural network processing.
 
@@ -243,7 +245,7 @@ an ``MCTSObservation``. This object lazily collects the information
 required by the algorithm when needed.
 
 The ``get_core`` method returns a vector representation of the state. In
-this example it is a one-dimensional vector containing the payoff the
+this example it is a one-dimensional vector containing the reward the
 player would receive by choosing the ``TAKE`` action at the current
 turn.
 
@@ -326,7 +328,7 @@ For example, you can modify the following parameters:
    capacity to learn complex strategies)
 -  ``collector. number_of_processes``: set to 4 (to speed-up data
    collection)
--  ``collector. mcts. number_of_simulation``: set to 225 (to obtain
+-  ``collector. mcts. number_of_simulations``: set to 225 (to obtain
    better move evaluations)
 -  ``collector. number_of_episodes``: set to 100 (to simulate more games
    for each training epoch)

@@ -138,8 +138,8 @@ The parameters have the following meaning:
 -  ``pucb_constant``: exploration weight. Higher values encourage
    exploration of less-visited actions.
 
--  ``discount_factor``: discount applied to payoffs that occur later in
-   the game.
+-  ``discount_factor``: discount applied to rewards that occur in the
+   game.
 
 -  ``dirichlet_alpha``: concentration parameter used when sampling
    optional Dirichlet noise for the root priors. Smaller values produce
