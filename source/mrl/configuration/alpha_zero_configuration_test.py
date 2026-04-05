@@ -1,4 +1,5 @@
 from pathlib import Path
+import io
 import yaml
 import pytest
 from mrl.configuration.alpha_zero_configuration import AlphaZeroConfiguration
@@ -37,12 +38,17 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
                 learning_rate: 1e-3
                 loading_workers: 1
             report_generator:
-                oracle_led_players: ['X']
                 number_of_tests: 10
                 buckets:
                     - [-inf, 0.25]
                     - [0.25, 0.75]
                     - [0.75, +inf]
+                policies:
+                    X:
+                        name: DeterministicOraclePolicy
+                        oracle: TrainedOracle
+                    O:
+                        name: RandomPolicy
             manual_play:
                 player: 'O'
             number_of_epochs: 10
@@ -68,6 +74,26 @@ def test_load_configuration(memory_type: str, configuration: dict):
     config.model_dump()  # serialization succeeds
     assert config.type == memory_type
     assert config.collector.temperature_schedule == ((0, 1.0),)
-    assert config.report_generator.oracle_led_players == ('X',)
+    assert 'X' in config.report_generator.policy_configurations
     assert config.report_generator.buckets[0][0] == float("-inf")
     assert config.workspace_path == Path("workspace")
+
+
+@pytest.mark.parametrize('memory_type', ['InMemory', 'HDF5'])
+@pytest.mark.parametrize('config_file_path', ['test_config.yaml'])
+@pytest.mark.quick
+def test_configuration_yaml_round_trip_uses_plain_lists(
+    memory_type: str,
+    configuration: dict,
+) -> None:
+    config = AlphaZeroConfiguration.model_validate(configuration)
+    stream = io.StringIO()
+
+    yaml.dump(config.model_dump(by_alias = True), stream)
+    reloaded = yaml.safe_load(stream.getvalue())
+
+    reloaded_config = AlphaZeroConfiguration.model_validate(reloaded)
+
+    assert reloaded_config.type == memory_type
+    assert reloaded_config.report_generator.buckets == config.report_generator.buckets
+    assert reloaded_config.collector.temperature_schedule == config.collector.temperature_schedule

@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from mrl.alpha_zero.experience_collector import CollectorConfiguration
 from mrl.alpha_zero.mcts import MCTSGame
 from mrl.alpha_zero.model_trainer import ModelTrainerConfiguration
 from mrl.alpha_zero.oracle import TrainableOracle
 from mrl.configuration.alpha_zero_configuration import (
-    ModelTestConfiguration,
     OracleConfiguration,
 )
 from mrl.game.game import Policy
@@ -27,6 +26,14 @@ class EvaluationContext:
     policies: EvaluationPolicies
 
 
+@dataclass(frozen = True)
+class ReportGeneratorContext:
+    policies: dict[Any, Policy]
+    observed_players: tuple[Any, ...]
+    number_of_tests: int
+    buckets: tuple[tuple[float, float], ...] | None
+
+
 @dataclass
 class _BaseAlphaZeroContext:  # pylint: disable=too-many-instance-attributes
     game: MCTSGame
@@ -35,7 +42,7 @@ class _BaseAlphaZeroContext:  # pylint: disable=too-many-instance-attributes
     trainer: ModelTrainerConfiguration
     collector: CollectorConfiguration
     number_of_epochs: int
-    report_generator: ModelTestConfiguration
+    report_generator: ReportGeneratorContext | None
     config_file_path: Path
     workspace_path: Path
     evaluation: EvaluationContext

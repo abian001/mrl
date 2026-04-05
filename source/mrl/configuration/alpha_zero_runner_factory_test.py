@@ -12,6 +12,7 @@ from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe
 from mrl.alpha_zero.models import OpenSpielConv
 from mrl.alpha_zero.mcts import MCTSPolicy
 from mrl.alpha_zero.oracle import DeterministicOraclePolicy
+from mrl.test_utils.policies import RandomPolicy
 
 
 class _PerspectiveWithDimension:
@@ -91,12 +92,17 @@ def configuration_data(
             learning_rate: 1e-3
             loading_workers: 1
         report_generator:
-            oracle_led_players: ['X']
             number_of_tests: 10
             buckets:
                 - [-inf, 0.25]
                 - [0.25, 0.75]
                 - [0.75, +inf]
+            policies:
+                X:
+                    name: DeterministicOraclePolicy
+                    oracle: TrainedOracle
+                O:
+                    name: RandomPolicy
         manual_play:
             manual_player: 'O'
             autonomous_policy:
@@ -158,13 +164,15 @@ def test_make_context_and_manual_play(
     assert context.report_generator.buckets is not None
     assert context.type == memory_type
     assert context.collector.temperature_schedule == ((0, 1.0),)
-    assert context.report_generator.oracle_led_players == (Player.X,)
+    assert context.report_generator.observed_players == (Player.X,)
     assert context.oracle_file_path == Path("workspace/tic_tac_toe_model")
     assert context.report_generator.buckets[0][0] == float("-inf")
     assert manual_player == Player.O
     assert isinstance(context.game, MCTSTicTacToe)
     assert isinstance(context.oracle, OpenSpielConv)
     assert isinstance(autonomous_policy, MCTSPolicy)
+    assert isinstance(context.report_generator.policies[Player.X], DeterministicOraclePolicy)
+    assert isinstance(context.report_generator.policies[Player.O], RandomPolicy)
 
 
 @pytest.mark.parametrize('memory_type', ['InMemory'])
@@ -256,12 +264,14 @@ def test_validate_capacity_output_size_mismatch(
 @pytest.mark.parametrize('memory_type', ['InMemory'])
 @pytest.mark.parametrize('config_file_path', ['test_config.yaml'])
 @pytest.mark.quick
-def test_validate_report_generator_oracle_led_players(
+def test_validate_report_generator_player_policies(
     factory: AlphaZeroRunnerFactory,
     configuration_data: dict,
     _clear_hd5f_config: None,
 ) -> None:
-    configuration_data['report_generator']['oracle_led_players'] = ['missing']
+    configuration_data['report_generator']['policies']['missing'] = {
+        'name': 'RandomPolicy',
+    }
     configuration = AlphaZeroRunnerConfiguration.model_validate(configuration_data)
 
     with pytest.raises(TypeError, match = 'Invalid player missing'):

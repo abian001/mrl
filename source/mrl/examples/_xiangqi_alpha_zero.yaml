@@ -29,12 +29,17 @@ trainer:
     learning_rate: 1e-3
     loading_workers: 1            
 report_generator:
-    oracle_led_players: ['Red']
     number_of_tests: 10
     buckets:
         - [-inf, 0.25]
         - [0.25, 0.75]
         - [0.75, +inf]
+    policies:
+        Red:
+            name: DeterministicOraclePolicy
+            oracle: TrainedOracle
+        Black:
+            name: RandomPolicy
 number_of_epochs: 1
 evaluation:
     episodes: 10

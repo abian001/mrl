@@ -89,12 +89,17 @@ def context(specification: Specification):
             learning_rate: 1e-3
             loading_workers: 1
         report_generator:
-            oracle_led_players: ['X']
             number_of_tests: 10
             buckets:
                 - [-1.0, 0.25]
                 - [0.25, 0.75]
                 - [0.75, 2.00]
+            policies:
+                X:
+                    name: DeterministicOraclePolicy
+                    oracle: TrainedOracle
+                O:
+                    name: RandomPolicy
         number_of_epochs: 2
         config_file_path: {specification.config_file}
         hdf5_path_prefix: {specification.data_file_prefix}

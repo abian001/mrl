@@ -83,10 +83,15 @@ def _make_configuration(specification: Specification):
             learning_rate: 0.001
             loading_workers: 1
         report_generator:
-            oracle_led_players: ['X']
             number_of_tests: 1
             buckets:
                 - [-1.0, 2.0]
+            policies:
+                X:
+                    name: DeterministicOraclePolicy
+                    oracle: TrainedOracle
+                O:
+                    name: RandomPolicy
         number_of_epochs: 1
         config_file_path: {specification.config_file_path}
         workspace_path: {specification.workspace_path}

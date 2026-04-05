@@ -8,7 +8,7 @@ import torch
 from mrl.alpha_zero.context import HDF5AlphaZeroContext
 from mrl.alpha_zero.oracle import TrainableOracle
 from mrl.alpha_zero.model_trainer import ModelTrainer
-from mrl.alpha_zero.model_evaluation  import EvaluationLoop
+from mrl.alpha_zero.report_generator import ReportGenerator
 from mrl.alpha_zero.model_updater import ModelUpdater
 
 
@@ -143,11 +143,7 @@ class DistributedAlphaZero:
         if context.report_generator is None:
             self.report_generator = lambda: None
         else:
-            self.report_generator = EvaluationLoop(
-                context.game,
-                self.model,
-                context.report_generator
-            )
+            self.report_generator = ReportGenerator(context.game, context.report_generator)
 
     def train(self, resume: bool = True):
         asyncio.run(self._train(resume))

@@ -9,7 +9,7 @@ from mrl.alpha_zero.experience_collector import (
     SingleBufferCollector
 )
 from mrl.alpha_zero.model_trainer import ModelTrainer
-from mrl.alpha_zero.model_evaluation import EvaluationLoop
+from mrl.alpha_zero.report_generator import ReportGenerator
 from mrl.alpha_zero.model_updater import ModelUpdater
 
 
@@ -33,7 +33,7 @@ class AlphaZero:
         if context.report_generator is None:
             self.report_generator = lambda: None
         else:
-            self.report_generator = EvaluationLoop(game, self.model, context.report_generator)
+            self.report_generator = ReportGenerator(game, context.report_generator)
 
         self.collector: LocalExperienceCollector
         if context.collector.number_of_processes > 1:
