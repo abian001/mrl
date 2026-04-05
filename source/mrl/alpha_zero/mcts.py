@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 import math
 import numpy as np
 from mrl.game.game import (
-    StopEvent,
     Restorable,
     State,
     Player,

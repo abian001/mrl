@@ -54,6 +54,34 @@ This policy represents a human player interacting with the system
 through either standard input (terminal) or the GUI. The action is
 chosen interactively by the user.
 
+*****************
+ AlphaBetaPolicy
+*****************
+
+.. code:: yaml
+
+   name: AlphaBetaPolicy
+   max_depth: 10
+   cache_size: 0
+
+This policy performs alpha-beta search on deterministic turn-based games
+with a discrete action space.
+
+The search is evaluated from the perspective of the active player at the
+root. On the other turns, the policy assumes the acting player tries to
+minimize that root player's reward. This matches standard two-player
+adversarial search.
+
+The policy can still be executed on multiplayer games, but the
+minimizing-opponent assumption is only an approximation there and does
+not guarantee optimal play.
+
+The parameters have the following meaning:
+
+-  ``max_depth``: maximum search depth, measured in plies from the root.
+-  ``cache_size``: number of root-state decisions cached. A value of
+   ``0`` disables caching and gives the plain alpha-beta behavior.
+
 ***************************
  DeterministicOraclePolicy
 ***************************
