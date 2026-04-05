@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, Field, field_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 from mrl.alpha_zero.experience_collector import CollectorConfiguration
 from mrl.alpha_zero.model_trainer import ModelTrainerConfiguration
@@ -11,6 +11,14 @@ from mrl.configuration.game_runner_configuration import (
     PolicyConfiguration as RunnerPolicyConfiguration,
 )
 Player = Any
+
+
+class TrueSkillConfiguration(BaseModel):
+    mu: float = 25.0
+    sigma: float = 8.333
+    beta: float = 1.476
+    tau: float = 0.00
+    draw_probability: float = 0.1
 
 
 class ReportGeneratorConfiguration(BaseModel):
@@ -39,10 +47,14 @@ class ReportGeneratorConfiguration(BaseModel):
 class EvaluationConfiguration(BaseModel):
     episodes: int
     max_old_models: int
+    uncertainty_penalty_coefficient: float = 3.0
+    discount_factor: float = 1.0
     policy_configuration: ObjectConfiguration = Field(alias = 'policy')
+    true_skill: TrueSkillConfiguration = Field(default_factory = TrueSkillConfiguration)
 
 
-class CapacityConfiguration(BaseModel, extra = 'allow'):
+class CapacityConfiguration(BaseModel):
+    model_config = ConfigDict(extra = 'allow')
     output_size: int | None = None
 
 

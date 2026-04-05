@@ -55,8 +55,16 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
             evaluation:
                 episodes: 10
                 max_old_models: 5
+                uncertainty_penalty_coefficient: 2.5
+                discount_factor: 0.9
                 policy:
                     name: DeterministicOraclePolicy
+                true_skill:
+                    mu: 30.0
+                    sigma: 7.0
+                    beta: 2.0
+                    tau: 0.5
+                    draw_probability: 0.2
             hdf5_path_prefix: data_file
             server_hostname: 127.0.0.1
             server_port: 8888
@@ -77,6 +85,9 @@ def test_load_configuration(memory_type: str, configuration: dict):
     assert 'X' in config.report_generator.policy_configurations
     assert config.report_generator.buckets[0][0] == float("-inf")
     assert config.workspace_path == Path("workspace")
+    assert config.evaluation.true_skill.mu == 30.0
+    assert config.evaluation.discount_factor == 0.9
+    assert config.evaluation.uncertainty_penalty_coefficient == 2.5
 
 
 @pytest.mark.parametrize('memory_type', ['InMemory', 'HDF5'])

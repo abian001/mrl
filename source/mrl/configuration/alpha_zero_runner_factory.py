@@ -1,6 +1,7 @@
 from typing import Any
 
 import yaml
+from trueskill import TrueSkill  # type: ignore[import-untyped]
 
 from mrl.alpha_zero.alpha_zero import AlphaZero
 from mrl.alpha_zero.oracle import Oracle
@@ -39,27 +40,44 @@ class AlphaZeroRunnerFactory:
         configuration: AlphaZeroConfiguration,
     ) -> UnionAlphaZeroContext:
         game = make_mcts_game(configuration.game_configuration)
+        number_of_players = len(game.get_players())
         self._validate_report_generator_players(configuration.report_generator, game)
         self._validate_output_size(configuration, game)
         oracle = make_trainable_oracle(configuration.oracle_configuration, game)
-        evaluation_oracle = make_trainable_oracle(configuration.oracle_configuration, game)
+        evaluation_oracles = [
+            make_trainable_oracle(configuration.oracle_configuration, game)
+            for _ in range(number_of_players - 1)
+        ]
         evaluation_policies = EvaluationPolicies(
             lead = make_policy(
                 configuration.evaluation.policy_configuration,
                 game = game,
                 oracle = oracle,
             ),
-            opponent = make_policy(
-                configuration.evaluation.policy_configuration,
-                game = game,
-                oracle = evaluation_oracle,
-            ),
+            opponents = [
+                make_policy(
+                    configuration.evaluation.policy_configuration,
+                    game = game,
+                    oracle = opponent_oracle,
+                )
+                for opponent_oracle in evaluation_oracles
+            ],
         )
         evaluation_context = EvaluationContext(
             episodes = configuration.evaluation.episodes,
             max_old_models = configuration.evaluation.max_old_models,
-            oracle = evaluation_oracle,
+            oracles = evaluation_oracles,
             policies = evaluation_policies,
+            true_skill = TrueSkill(
+                mu = configuration.evaluation.true_skill.mu,
+                sigma = configuration.evaluation.true_skill.sigma,
+                beta = configuration.evaluation.true_skill.beta,
+                tau = configuration.evaluation.true_skill.tau,
+                draw_probability = configuration.evaluation.true_skill.draw_probability,
+            ),
+            uncertainty_penalty_coefficient =
+                configuration.evaluation.uncertainty_penalty_coefficient,
+            discount_factor = configuration.evaluation.discount_factor,
         )
         base_arguments = {
             'game': game,

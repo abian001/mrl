@@ -44,8 +44,16 @@ number_of_epochs: 1
 evaluation:
     episodes: 10
     max_old_models: 5
+    uncertainty_penalty_coefficient: 3.0
+    discount_factor: 1.0
     policy:
         name: DeterministicOraclePolicy
+    true_skill:
+        mu: 25.0
+        sigma: 8.333
+        beta: 1.476
+        tau: 0.0
+        draw_probability: 0.1
 hdf5_path_prefix: xiangqi_data
 server_hostname: 127.0.0.1
 server_port: 8888

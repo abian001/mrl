@@ -137,7 +137,11 @@ class DistributedAlphaZero:
             )
         self.model_trainer = ModelTrainer(self.model, context.trainer)
 
-        self.model_updater = ModelUpdater(context.game, context)
+        self.model_updater = ModelUpdater(
+            context.game,
+            context.evaluation,
+            context.oracle_file_path,
+        )
 
         self.report_generator: Callable[[], None]
         if context.report_generator is None:
@@ -149,10 +153,7 @@ class DistributedAlphaZero:
         asyncio.run(self._train(resume))
 
     async def _train(self, resume: bool = True):
-        if resume and os.path.exists(self.context.oracle_file_path):
-            self.model.load(self.context.oracle_file_path)
-        else:
-            self.model.save(self.context.oracle_file_path)
+        self.model_updater.load_or_initialize_model(self.model, resume)
         async with ExperienceCollector(self.context) as experience_collector:
             async for file_path in experience_collector.get_files():
                 better_model = self._process_once(file_path)

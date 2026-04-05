@@ -115,8 +115,16 @@ def configuration_data(
         evaluation:
             episodes: 10
             max_old_models: 5
+            uncertainty_penalty_coefficient: 2.5
+            discount_factor: 0.9
             policy:
                 name: DeterministicOraclePolicy
+            true_skill:
+                mu: 30.0
+                sigma: 7.0
+                beta: 2.0
+                tau: 0.5
+                draw_probability: 0.2
         hdf5_path_prefix: data_file
         server_hostname: 127.0.0.1
         server_port: 8888
@@ -167,12 +175,17 @@ def test_make_context_and_manual_play(
     assert context.report_generator.observed_players == (Player.X,)
     assert context.oracle_file_path == Path("workspace/tic_tac_toe_model")
     assert context.report_generator.buckets[0][0] == float("-inf")
+    assert context.evaluation.true_skill.mu == 30.0
+    assert context.evaluation.discount_factor == 0.9
+    assert context.evaluation.uncertainty_penalty_coefficient == 2.5
     assert manual_player == Player.O
     assert isinstance(context.game, MCTSTicTacToe)
     assert isinstance(context.oracle, OpenSpielConv)
     assert isinstance(autonomous_policy, MCTSPolicy)
     assert isinstance(context.report_generator.policies[Player.X], DeterministicOraclePolicy)
     assert isinstance(context.report_generator.policies[Player.O], RandomPolicy)
+    assert len(context.evaluation.oracles) == 1
+    assert len(context.evaluation.policies.opponents) == 1
 
 
 @pytest.mark.parametrize('memory_type', ['InMemory'])

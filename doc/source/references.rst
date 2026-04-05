@@ -28,6 +28,16 @@ https://arxiv.org/abs/1908.09453
 
 Source code: https://github.com/google-deepmind/open_spiel
 
+***********
+ TrueSkill
+***********
+
+TrueSkill is used to rate saved AlphaZero checkpoints during model
+selection. The current best model is chosen by applying a conservative
+penalty to the rating uncertainty.
+
+Project repository: https://github.com/sublee/trueskill
+
 ********
  KataGo
 ********

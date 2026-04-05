@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
+
+from trueskill import TrueSkill  # type: ignore[import-untyped]
 
 from mrl.alpha_zero.experience_collector import CollectorConfiguration
 from mrl.alpha_zero.mcts import MCTSGame
@@ -15,15 +17,18 @@ from mrl.game.game import Policy
 @dataclass(frozen = True)
 class EvaluationPolicies:
     lead: Policy
-    opponent: Policy
+    opponents: list[Policy]
 
 
 @dataclass(frozen = True)
 class EvaluationContext:
     episodes: int
     max_old_models: int
-    oracle: TrainableOracle
+    oracles: list[TrainableOracle]
     policies: EvaluationPolicies
+    true_skill: TrueSkill = field(default_factory = TrueSkill)
+    uncertainty_penalty_coefficient: float = 3.0
+    discount_factor: float = 1.0
 
 
 @dataclass(frozen = True)

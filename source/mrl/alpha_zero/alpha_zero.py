@@ -1,4 +1,3 @@
-import os
 from typing import Callable
 import torch
 from mrl.alpha_zero.context import InMemoryAlphaZeroContext
@@ -26,7 +25,11 @@ class AlphaZero:
                 f"Oracle class {type(self.model)} is not a torch Module."
             )
         self.model_trainer = ModelTrainer(self.model, context.trainer)
-        self.model_updater = ModelUpdater(context.game, context)
+        self.model_updater = ModelUpdater(
+            context.game,
+            context.evaluation,
+            context.oracle_file_path,
+        )
         self.number_of_epochs = context.number_of_epochs
 
         self.report_generator: Callable[[], None]
@@ -42,10 +45,7 @@ class AlphaZero:
             self.collector = SingleBufferCollector(game, self.model, context.collector)
 
     def train(self, resume: bool = True):
-        if resume and os.path.exists(self.model_path):
-            self.model.load(self.model_path)
-        else:
-            self.model.save(self.model_path)
+        self.model_updater.load_or_initialize_model(self.model, resume)
         for _ in range(self.number_of_epochs):
             buffer, buffer_ready = self.collector.collect()
             if buffer_ready:

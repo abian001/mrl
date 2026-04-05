@@ -42,7 +42,8 @@ class Specification:
         return {
             self.config_file: self.memory_type == 'HDF5',
             f'{self.workspace}/{self.model_file}': True,
-            f'{self.workspace}/{self.model_file}_old': True,
+            f'{self.workspace}/{self.model_file}_scores.yaml': True,
+            f'{self.workspace}/{self.model_file}_': True,
             f'{self.workspace}/{self.data_file_prefix}': False
         }
 
