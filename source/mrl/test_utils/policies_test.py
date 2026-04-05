@@ -130,9 +130,16 @@ def test_alpha_beta_policy_selects_best_action(game: Game, root_state: State) ->
 
 
 def test_alpha_beta_policy_respects_max_depth(game: Game, root_state: State) -> None:
+    class RightRolloutPolicy:
+
+        def __call__(self, _observation: State, action_space: Sequence[str]) -> str:
+            assert "right" in action_space
+            return "right"
+
     shallow_policy: AlphaBetaPolicy[State, State, str, str, Sequence] = AlphaBetaPolicy(
         game,
         max_depth = 1,
+        rollout_policy = RightRolloutPolicy(),
     )
     deep_policy: AlphaBetaPolicy[State, State, str, str, Sequence] = AlphaBetaPolicy(
         game,
@@ -142,7 +149,7 @@ def test_alpha_beta_policy_respects_max_depth(game: Game, root_state: State) -> 
     shallow_action = shallow_policy(root_state, ("choice_1", "choice_2"))
     deep_action = deep_policy(root_state, ("choice_1", "choice_2"))
 
-    assert shallow_action == "choice_2"
+    assert shallow_action == "choice_1"
     assert deep_action == "choice_1"
 
 
