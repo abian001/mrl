@@ -146,6 +146,15 @@ class RewardObservable(Protocol[StateContra, Player, ObservationCo]):
         """Return the player payoff perspectives."""
 
 
+@runtime_checkable
+class TurnBasedRevertible(Protocol[State, ActionContra]):
+    """Protocol for a TurnBased game"""
+
+    @abstractmethod
+    def revert(self, state: State, action: ActionContra) -> State:
+        """Updates the game state by reverting the input action"""
+
+
 class Observer(ABC, Generic[Observation, Action]):
     """Observes the game from the perspective of one player only.
        It collects observation as the game was a one-player game,

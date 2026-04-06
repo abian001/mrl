@@ -46,7 +46,7 @@ class ReportGeneratorConfiguration(BaseModel):
 
 class EvaluationConfiguration(BaseModel):
     episodes: int
-    max_old_models: int
+    max_models: int
     uncertainty_penalty_coefficient: float = 3.0
     discount_factor: float = 1.0
     policy_configuration: ObjectConfiguration = Field(alias = 'policy')

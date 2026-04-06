@@ -3,6 +3,7 @@ from typing import Sequence
 
 import pytest
 
+from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
 from mrl.test_utils.policies import AlphaBetaPolicy
 
 
@@ -130,16 +131,21 @@ def test_alpha_beta_policy_selects_best_action(game: Game, root_state: State) ->
 
 
 def test_alpha_beta_policy_respects_max_depth(game: Game, root_state: State) -> None:
-    class RightRolloutPolicy:
+    class RightRolloutOracle(Oracle):
 
-        def __call__(self, _observation: State, action_space: Sequence[str]) -> str:
-            assert "right" in action_space
-            return "right"
+        def get_value(self, observation: State) -> float:
+            del observation
+            return 0.0
+
+        def get_probabilities(self, observation: State, legal_mask: LegalMask) -> Probabilities:
+            del observation
+            del legal_mask
+            return (1.0, 0.0)
 
     shallow_policy: AlphaBetaPolicy[State, State, str, str, Sequence] = AlphaBetaPolicy(
         game,
         max_depth = 1,
-        rollout_policy = RightRolloutPolicy(),
+        rollout_oracle = RightRolloutOracle(),
     )
     deep_policy: AlphaBetaPolicy[State, State, str, str, Sequence] = AlphaBetaPolicy(
         game,

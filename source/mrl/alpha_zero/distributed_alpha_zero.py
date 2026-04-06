@@ -156,14 +156,14 @@ class DistributedAlphaZero:
         self.model_updater.load_or_initialize_model(self.model, resume)
         async with ExperienceCollector(self.context) as experience_collector:
             async for file_path in experience_collector.get_files():
-                better_model = self._process_once(file_path)
-                if better_model:
+                best_model_was_updated = self._process_once(file_path)
+                if best_model_was_updated:
                     await experience_collector.notify_better_model()
 
-    def _process_once(self, file_path):
+    def _process_once(self, file_path: str) -> bool:
         self.model_trainer.train_from_hdf5(file_path)
         os.remove(file_path)
-        better_model = self.model_updater.save_if_better(self.model)
-        if better_model:
+        model_is_accepted = self.model_updater.save_if_accepted(self.model)
+        if model_is_accepted:
             self.report_generator()
-        return better_model
+        return self.model_updater.best_model_was_updated

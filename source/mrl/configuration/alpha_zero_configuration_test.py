@@ -54,7 +54,7 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
             number_of_epochs: 10
             evaluation:
                 episodes: 10
-                max_old_models: 5
+                max_models: 5
                 uncertainty_penalty_coefficient: 2.5
                 discount_factor: 0.9
                 policy:

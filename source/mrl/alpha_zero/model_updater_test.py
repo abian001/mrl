@@ -4,7 +4,7 @@ from typing import Any, cast
 from unittest.mock import Mock
 
 import pytest
-from trueskill import Rating  # type: ignore[import-untyped]
+from trueskill import TrueSkill, Rating  # type: ignore[import-untyped]
 
 from mrl.alpha_zero.context import EvaluationContext, EvaluationPolicies
 from mrl.alpha_zero.model_updater import ModelUpdater, Scorebook
@@ -78,7 +78,7 @@ def test_model_updater_load_or_initialize_model_loads_saved_model(game: "SimpleG
     oracle_path = MockPath("oracle", exists = True)
     evaluation_context = EvaluationContext(
         episodes = 1,
-        max_old_models = 2,
+        max_models = 2,
         oracles = cast(list[Any], [MockOracle()]),
         policies = EvaluationPolicies(
             lead = cast(Any, FirstActionPolicy()),
@@ -106,7 +106,7 @@ def test_model_updater_load_or_initialize_model_saves_model_when_not_resuming(
     oracle_path = MockPath("oracle", exists = False)
     evaluation_context = EvaluationContext(
         episodes = 1,
-        max_old_models = 2,
+        max_models = 2,
         oracles = cast(list[Any], [MockOracle()]),
         policies = EvaluationPolicies(
             lead = cast(Any, FirstActionPolicy()),
@@ -125,11 +125,12 @@ def test_model_updater_load_or_initialize_model_saves_model_when_not_resuming(
 def test_model_updater_prunes_old_model_and_updates_best_symlink(
     three_model_context: "TestContext",
 ) -> None:
-    better_model = three_model_context.updater.save_if_better(
+    model_is_accepted = three_model_context.updater.save_if_accepted(
         cast(Any, three_model_context.model)
     )
 
-    assert better_model is False
+    assert model_is_accepted is True
+    assert three_model_context.updater.best_model_was_updated
     three_model_context.model.save.assert_called_once_with("oracle_2")
     three_model_context.remove.assert_called_once_with("oracle_0")
     three_model_context.save_scorebook.assert_called_once_with()
@@ -152,7 +153,7 @@ def three_model_context(
             "oracle_1": 1.0,
             "oracle_2": 0.5,
         },
-        max_old_models = 2,
+        max_models = 2,
         rated_models = [
             Rating(mu = 1.0, sigma = 0.1),
             Rating(mu = 5.0, sigma = 0.1),
@@ -166,11 +167,12 @@ def three_model_context(
 def test_model_updater_keeps_last_challenger_when_it_is_pruned(
     incumbent_and_challenger_context: "TestContext",
 ) -> None:
-    better_model = incumbent_and_challenger_context.updater.save_if_better(
+    model_is_accepted = incumbent_and_challenger_context.updater.save_if_accepted(
         cast(Any, incumbent_and_challenger_context.model)
     )
 
-    assert better_model is False
+    assert model_is_accepted is False
+    assert not incumbent_and_challenger_context.updater.best_model_was_updated
     incumbent_and_challenger_context.move.assert_called_once_with(
         "oracle_0",
         incumbent_and_challenger_context.updater.last_challenger_path,
@@ -194,7 +196,7 @@ def incumbent_and_challenger_context(
             "oracle_1": 1.0,
             "oracle_0": 0.0,
         },
-        max_old_models = 1,
+        max_models = 1,
         rated_models = [
             Rating(mu = 5.0, sigma = 0.1),
             Rating(mu = 1.0, sigma = 0.1),
@@ -298,12 +300,15 @@ class MockOracle:
         self.current_path = str(file_path)
 
 
-class StubRatingSystem:
+class StubRatingSystem(TrueSkill):
 
-    def __init__(self, ratings: list[Rating]) -> None:
+    def __init__(self, ratings: list[Rating]) -> None:  # pylint: disable=super-init-not-called
         self.ratings = ratings
 
-    def rate(self, _ratings: object, ranks: object) -> list[tuple[Rating]]:
+    def rate(self, rating_groups: object, ranks: object, *args, **kwargs) -> list[tuple[Rating]]:
+        del rating_groups
+        del args
+        del kwargs
         assert ranks is not None
         return [(rating,) for rating in self.ratings]
 
@@ -327,7 +332,7 @@ class MockPath:
 class TestContextInput:
     existing_model_paths: dict[str, Rating]
     rewards_by_path: dict[str, float]
-    max_old_models: int
+    max_models: int
     rated_models: list[Rating]
 
 
@@ -360,15 +365,15 @@ class TestContext:
         monkeypatch.setattr("mrl.alpha_zero.model_updater.shutil.move", move)
         evaluation_context = EvaluationContext(
             episodes = 1,
-            max_old_models = scenario.max_old_models,
+            max_models = scenario.max_models,
             oracles = cast(list[Any], [opponent_oracle]),
             policies = EvaluationPolicies(
                 lead = cast(Any, ModelDrivenPolicy(model, scenario.rewards_by_path)),
                 opponents = cast(list[Any], [FirstActionPolicy()]),
             ),
+            true_skill = StubRatingSystem(scenario.rated_models)
         )
         updater = ModelUpdater(cast(Any, game), evaluation_context, cast(Path, oracle_path))
-        updater.rating_system = StubRatingSystem(scenario.rated_models)
         return cls(
             model = model,
             oracle_path = oracle_path,

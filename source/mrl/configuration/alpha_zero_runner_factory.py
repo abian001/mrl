@@ -65,7 +65,7 @@ class AlphaZeroRunnerFactory:
         )
         evaluation_context = EvaluationContext(
             episodes = configuration.evaluation.episodes,
-            max_old_models = configuration.evaluation.max_old_models,
+            max_models = configuration.evaluation.max_models,
             oracles = evaluation_oracles,
             policies = evaluation_policies,
             true_skill = TrueSkill(

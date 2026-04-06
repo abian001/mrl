@@ -70,7 +70,7 @@ def context(specification: Specification):
             file_path: {specification.model_file}
         evaluation:
             episodes: 10
-            max_old_models: 10
+            max_models: 10
             policy:
                 name: DeterministicOraclePolicy
         collector:

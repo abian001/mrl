@@ -62,7 +62,7 @@ def _make_configuration(specification: Specification):
             file_path: resume_model
         evaluation:
             episodes: 2
-            max_old_models: 2
+            max_models: 2
             policy:
                 name: DeterministicOraclePolicy
         collector:

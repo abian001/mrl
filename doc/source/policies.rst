@@ -63,24 +63,51 @@ chosen interactively by the user.
    name: AlphaBetaPolicy
    max_depth: 10
    cache_size: 0
+   number_of_rollouts: 1
+   discount_factor: 1.0
+   oracle: null
 
 This policy performs alpha-beta search on deterministic turn-based games
 with a discrete action space.
 
-The search is evaluated from the perspective of the active player at the
-root. On the other turns, the policy assumes the acting player tries to
-minimize that root player's reward. This matches standard two-player
-adversarial search.
+The search is evaluated from the perspective of the initial active
+player. On turns where a different player is active, the policy assumes
+that player seeks to minimize the initial player's reward. This matches
+the standard two-player adversarial search formulation.
 
 The policy can still be executed on multiplayer games, but the
 minimizing-opponent assumption is only an approximation there and does
 not guarantee optimal play.
 
+The policy performs a depth-first search and explores actions in random
+order. As a result, when multiple actions yield similar payoff values,
+the policy may return different actions across runs.
+
 The parameters have the following meaning:
 
--  ``max_depth``: maximum search depth, measured in plies from the root.
--  ``cache_size``: number of root-state decisions cached. A value of
-   ``0`` disables caching and gives the plain alpha-beta behavior.
+-  ``discount_factor``: Discount factor applied to state rewards when
+   computing the final payoff.
+
+-  ``max_depth``: Maximum search depth, measured in plies from the root.
+   number_of_rollouts: Number of rollout simulations performed when the
+   maximum depth is reached. Each rollout continues until the game
+   terminates, and the final payoff is computed as the average across
+   all rollouts.
+
+-  ``oracle``: Oracle used during the rollout stage. If undefined, a
+   random policy is used. If defined and number_of_rollouts is 1, the
+   ``DeterministicOraclePolicy`` is used. If number_of_rollouts is
+   greater than 1, the ``StochasticOraclePolicy`` is used.
+
+-  ``cache_size``: Number of root-state decisions cached. A value of
+   ``0`` disables caching and results in standard alpha-beta behavior.
+   Note that enabling caching removes randomness, making the policy
+   deterministic.
+
+If the game implements the ``TurnBasedRevertible`` protocol, the policy
+avoids creating state copies during search. Instead, states are updated
+in-place and reverted after exploration. This significantly reduces
+memory allocations and can substantially improve search performance.
 
 ***************************
  DeterministicOraclePolicy

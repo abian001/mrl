@@ -31,7 +31,8 @@ class ModelUpdater:
             oracle_file_path,
             context.uncertainty_penalty_coefficient,
         )
-        self.rating_system = context.true_skill
+        self.best_model_path = self.scorebook.best_model_path if len(self.scorebook) > 0 else None
+        self._best_model_was_updated = False
 
     def load_or_initialize_model(
         self,
@@ -43,25 +44,31 @@ class ModelUpdater:
             return
         model.save(self.oracle_file_path)
 
-    def save_if_better(self, model: TrainableOracle) -> bool:
+    def save_if_accepted(self, model: TrainableOracle) -> bool:
         challenger_path = self.scorebook.add_challenger()
         model.save(challenger_path)
         if len(self.scorebook) > 1:
             self.scorebook = self._evaluate(model, challenger_path)
-        best_model_path = self.scorebook.best_model_path
-        challenger_model_is_best = best_model_path == challenger_path
+        self._update_best_model()
 
-        while len(self.scorebook) > self.context.max_old_models:
+        if len(self.scorebook) > self.context.max_models:
             worse_model = self.scorebook.pop_worse()
-            if worse_model == challenger_path:
-                shutil.move(challenger_path, self.last_challenger_path)
-            else:
+            if challenger_is_accepted := (worse_model != challenger_path):
                 os.remove(worse_model)
+            else:
+                shutil.move(challenger_path, self.last_challenger_path)
+        else:
+            challenger_is_accepted = True
 
         self.scorebook.save()
         self.oracle_file_path.unlink()
-        self.oracle_file_path.symlink_to(Path(best_model_path).name)
-        return challenger_model_is_best
+        assert self.best_model_path is not None
+        self.oracle_file_path.symlink_to(Path(self.best_model_path).name)
+        return challenger_is_accepted
+
+    @property
+    def best_model_was_updated(self) -> bool:
+        return self._best_model_was_updated
 
     def _evaluate(
         self,
@@ -93,7 +100,7 @@ class ModelUpdater:
                 reverse_rewards.append(
                     -self._evaluate_once(perspectives[lead_player], policies)
                 )
-            ratings = self.rating_system.rate(ratings, ranks = reverse_rewards)
+            ratings = self.context.true_skill.rate(ratings, ranks = reverse_rewards)
 
         for (index, model_path) in enumerate(model_paths):
             self.scorebook[model_path] = ratings[index][0]
@@ -116,6 +123,14 @@ class ModelUpdater:
         )
         game_loop.run()
         return score_observer.get_reward()
+
+    def _update_best_model(self):
+        best_model_path = self.scorebook.best_model_path
+        if self.best_model_path != best_model_path:
+            self.best_model_path = best_model_path
+            self._best_model_was_updated = True
+        else:
+            self._best_model_was_updated = False
 
 
 class Scorebook(UserDict[str, Rating]):

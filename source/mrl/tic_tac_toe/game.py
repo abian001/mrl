@@ -106,6 +106,13 @@ class BaseTicTacToe(ABC, Generic[Observation]):
         )
         return state
 
+    def revert(self, state: State, action: Action) -> State:
+        state.board[action] = Symbol.EMPTY
+        state.active_player = Symbol.O if state.active_player is Symbol.X else Symbol.X
+        state.winner = None
+        state.is_final = False
+        return state
+
     def _compute_winner(self, state: State) -> Player | None:
         for line in self.winning_lines:
             symbol = state.board[line[0]]

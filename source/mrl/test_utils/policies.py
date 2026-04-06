@@ -1,10 +1,15 @@
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Generic, Protocol, TypeVar, cast
+from contextlib import AbstractContextManager
 import copy
 import math
 import random as python_random
-
+from mrl.alpha_zero.oracle import (
+    Oracle,
+    DeterministicOraclePolicy,
+    StochasticOraclePolicy
+)
 from mrl.game.game import (
     Action,
     ActionContra,
@@ -17,7 +22,9 @@ from mrl.game.game import (
     Restorable,
     RewardObservable,
     TurnBased,
-    DiscreteActionSpace
+    DiscreteActionSpace,
+    Policy,
+    TurnBasedRevertible
 )
 
 
@@ -86,13 +93,13 @@ class AlphaBetaPolicy(Generic[State, Observation, Action, Player, DiscreteAction
         game: SearchGame[State, Observation, Action, Player],
         max_depth: int = 10,
         cache_size: int = 0,
-        rollout_policy: Any = None,
+        rollout_oracle: Oracle | None = None,
         number_of_rollouts: int = 1,
         discount_factor: float = 1.0,
     ) -> None:
         self.game = game
         self.max_depth = max_depth
-        self.rollout_policy = rollout_policy or RandomPolicy()
+        self.rollout_policy = self._make_rollout_policy(rollout_oracle, number_of_rollouts)
         self.number_of_rollouts = number_of_rollouts
         self.discount_factor = discount_factor
         self._get_best_action_with_cache = lru_cache(maxsize = cache_size)(
@@ -109,6 +116,17 @@ class AlphaBetaPolicy(Generic[State, Observation, Action, Player, DiscreteAction
         if self._get_best_action_with_cache.cache_info().maxsize and _is_hashable(state):
             return self._get_best_action_with_cache(cast(Any, state))
         return self._get_best_action(state)
+
+    def _make_rollout_policy(
+        self,
+        rollout_oracle: Oracle | None,
+        number_of_rollouts: int
+    ) -> Policy:
+        if rollout_oracle is None:
+            return RandomPolicy()
+        if number_of_rollouts > 1:
+            return StochasticOraclePolicy(rollout_oracle)
+        return DeterministicOraclePolicy(rollout_oracle)
 
     def _get_best_action(
         self,
@@ -132,20 +150,19 @@ class AlphaBetaPolicy(Generic[State, Observation, Action, Player, DiscreteAction
         window: SearchWindow = SearchWindow(),
         depth: int = 0,
     ) -> float:
-        state_copy = copy.deepcopy(state)
-        state_copy = self.game.update(state_copy, action)
-        immediate_reward = self.game.get_perspectives()[player].get_reward(state_copy)
+        with NextState(self.game, state, action) as next_state:
+            immediate_reward = self.game.get_perspectives()[player].get_reward(next_state)
 
-        if state_copy.is_final:
-            return immediate_reward
-        if depth >= self.max_depth:
-            return self._get_rollout_payoff(state_copy, player)
+            if next_state.is_final:
+                return immediate_reward
+            if depth >= self.max_depth:
+                return self._get_rollout_payoff(next_state, player)
 
-        if player == state_copy.active_player:
-            next_payoff = self._get_max_payoff(state_copy, player, window, depth)
-        else:
-            next_payoff = self._get_min_payoff(state_copy, player, window, depth)
-        return immediate_reward + self.discount_factor * next_payoff
+            if player == next_state.active_player:
+                next_payoff = self._get_max_payoff(next_state, player, window, depth)
+            else:
+                next_payoff = self._get_min_payoff(next_state, player, window, depth)
+            return immediate_reward + self.discount_factor * next_payoff
 
     def _get_max_payoff(
         self,
@@ -228,4 +245,26 @@ def _is_hashable(*values: Any) -> bool:
         hash(values)
         return True
     except TypeError:
+        return False
+
+
+class NextState(AbstractContextManager, Generic[State, Action]):
+    def __init__(self, game: SearchGame, state: State, action: Action):
+        self.game = game
+        self.state = state
+        self.action = action
+        self._revertible = isinstance(self.game, TurnBasedRevertible)
+        self._next_state = None
+
+    def __enter__(self):
+        if self._revertible:
+            self._next_state = self.game.update(self.state, self.action)
+        else:
+            self._next_state = copy.deepcopy(self.state)
+            self._next_state = self.game.update(self._next_state, self.action)
+        return self._next_state
+
+    def __exit__(self, exc_type, exc, tb):
+        if self._revertible:
+            self.state = self.game.revert(self.state, self.action)
         return False

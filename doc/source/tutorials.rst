@@ -15,6 +15,7 @@ You need a Python environment with the following dependencies:
    - pyyaml 6.0.3
    - h5py 3.15.1
    - pydantic 2.12.4
+   - trueskill 0.4.5
 
 You can use the Dockerfile to create a Docker image.
 
@@ -342,9 +343,15 @@ After applying the changes described above, the following results were
 obtained in my tests:
 
 -  InMemory strategy: After 16 minutes of training, the model achieved
-   an average payoff of 0.93, with a 90% win rate and a 4% loss rate
-   against the random policy.
 
--  HDF5 strategy: After 7 minutes of training, the model achieved an
-   average payoff of 0.88, with a 85% win rate and a 9% loss rate
-   against the random policy.
+   -  an average payoff of 0.92, with a 87% win rate and a 5% loss rate
+      against the random policy;
+   -  an average payoff of 0.36, with a 72% draw rate and a 28% loss
+      rate against the optimal AlphaBetaPolicy.
+
+-  HDF5 strategy: After 8 minutes of training, the model achieved
+
+   -  an average payoff of 0.85, with a 81% win rate and a 11% loss rate
+      against the random policy;
+   -  an average payoff of 0.31, with a 62% draw rate and a 38% loss
+      rate against the optimal AlphaBetaPolicy.

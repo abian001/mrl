@@ -50,8 +50,8 @@ class AlphaZero:
             buffer, buffer_ready = self.collector.collect()
             if buffer_ready:
                 self.model_trainer.train(buffer)
-                better_model = self.model_updater.save_if_better(self.model)
-                if better_model:
+                model_is_accepted = self.model_updater.save_if_accepted(self.model)
+                if model_is_accepted:
                     self.report_generator()
 
     def save_training_data(self, file_path: str):

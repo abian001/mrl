@@ -82,7 +82,7 @@ individual sections are described below.
    number_of_epochs: 1
    evaluation:
        episodes: 100
-       max_old_models: 10
+       max_models: 10
        uncertainty_penalty_coefficient: 3.0
        discount_factor: 1.0
        policy:
@@ -365,7 +365,7 @@ The workspace also stores evaluation artifacts:
 
    evaluation:
        episodes: 100
-       max_old_models: 10
+       max_models: 10
        uncertainty_penalty_coefficient: 3.0
        discount_factor: 1.0
        policy:
@@ -398,25 +398,27 @@ persisted ratings used to resume model selection are stored in
 ``<oracle_file_path>_scores.yaml``.
 
 -  ``episodes``: number of sampled evaluation scenarios.
--  ``max_old_models``: maximum number of saved checkpoints retained for
+
+-  ``max_models``: maximum number of saved checkpoints retained for
    future comparisons.
+
 -  ``uncertainty_penalty_coefficient``: penalty applied to the TrueSkill
    uncertainty ``sigma`` when ranking checkpoints.
+
 -  ``discount_factor``: discount factor used when accumulating observed
    rewards during evaluation games.
--  ``policy``: policy template used for checkpoint evaluation.
+
+-  ``policy``: policy template used for checkpoint evaluation. It is
+   recommended that this policy matches the one intended for deployment.
+
 -  ``true_skill``: parameters of the TrueSkill rating system used to
    rank checkpoints.
 
-The policy is configurable because model quality is relative to the
-policy used to turn the model into actions. A model that performs better
-for one policy is not guaranteed to perform better for another. This can
-happen not only when comparing direct oracle play with MCTS-based play,
-but also when comparing two MCTS policies with different numbers of
-simulations.
-
-In practice, the evaluation policy should match the policy you expect to
-use when the model is deployed.
+   -  ``mu``: Initial mean skill estimate.
+   -  ``sigma``: Initial uncertainty in the skill estimate.
+   -  ``beta``: Performance variance controlling expected outcome
+      spread.
+   -  ``tau``: Dynamic factor controlling skill drift over time.
 
 ************************
  HDF5 specific settings

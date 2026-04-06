@@ -43,7 +43,7 @@ report_generator:
 number_of_epochs: 1
 evaluation:
     episodes: 100
-    max_old_models: 10
+    max_models: 10
     uncertainty_penalty_coefficient: 3.0
     discount_factor: 1.0
     policy:

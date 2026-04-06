@@ -23,7 +23,7 @@ class EvaluationPolicies:
 @dataclass(frozen = True)
 class EvaluationContext:
     episodes: int
-    max_old_models: int
+    max_models: int
     oracles: list[TrainableOracle]
     policies: EvaluationPolicies
     true_skill: TrueSkill = field(default_factory = TrueSkill)

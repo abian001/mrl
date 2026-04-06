@@ -53,7 +53,7 @@ def context(
             file_path: self_play_test
         evaluation:
             episodes: 10
-            max_old_models: 2
+            max_models: 2
             policy:
                 name: DeterministicOraclePolicy
         collector:
