@@ -42,7 +42,8 @@ class Specification:
         return {
             self.config_file: self.memory_type == 'HDF5',
             f'{self.workspace}/{self.model_file}': True,
-            f'{self.workspace}/{self.model_file}_old': True,
+            f'{self.workspace}/{self.model_file}_scores.yaml': True,
+            f'{self.workspace}/{self.model_file}_': True,
             f'{self.workspace}/{self.data_file_prefix}': False
         }
 
@@ -69,7 +70,7 @@ def context(specification: Specification):
             file_path: {specification.model_file}
         evaluation:
             episodes: 10
-            max_old_models: 10
+            max_models: 10
             policy:
                 name: DeterministicOraclePolicy
         collector:
@@ -89,12 +90,17 @@ def context(specification: Specification):
             learning_rate: 1e-3
             loading_workers: 1
         report_generator:
-            oracle_led_players: ['X']
             number_of_tests: 10
             buckets:
                 - [-1.0, 0.25]
                 - [0.25, 0.75]
                 - [0.75, 2.00]
+            policies:
+                X:
+                    name: DeterministicOraclePolicy
+                    oracle: TrainedOracle
+                O:
+                    name: RandomPolicy
         number_of_epochs: 2
         config_file_path: {specification.config_file}
         hdf5_path_prefix: {specification.data_file_prefix}

@@ -1,22 +1,41 @@
 from pathlib import Path
 from typing import Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, Field, field_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 from mrl.alpha_zero.experience_collector import CollectorConfiguration
 from mrl.alpha_zero.model_trainer import ModelTrainerConfiguration
 from mrl.configuration.factory import ObjectConfiguration
+from mrl.configuration.game_runner_configuration import (
+    OracleConfiguration as RunnerOracleConfiguration,
+    PolicyConfiguration as RunnerPolicyConfiguration,
+)
 Player = Any
 
 
-class ModelTestConfiguration(BaseModel):
-    oracle_led_players: tuple[Player]
+class TrueSkillConfiguration(BaseModel):
+    mu: float = 25.0
+    sigma: float = 8.333
+    beta: float = 1.476
+    tau: float = 0.00
+    draw_probability: float = 0.1
+
+
+class ReportGeneratorConfiguration(BaseModel):
     number_of_tests: int
     buckets: tuple[tuple[float, float], ...] | None
-
-    @field_serializer("oracle_led_players")
-    def serialize_players(self, players: tuple[Player], _info: Any):
-        return [getattr(player, 'value', player) for player in players]
+    oracle_configurations: dict[str, RunnerOracleConfiguration] = Field(
+        alias = 'oracles',
+        default_factory = dict,
+    )
+    shared_policy_configurations: dict[str, RunnerPolicyConfiguration] = Field(
+        alias = 'shared_policies',
+        default_factory = dict,
+    )
+    policy_configurations: dict[str, RunnerPolicyConfiguration | str] = Field(
+        alias = 'policies',
+        default_factory = dict,
+    )
 
     @field_serializer("buckets")
     def buckets_to_list(self, buckets: tuple[tuple[float, float], ...] | None, _info: Any):
@@ -27,11 +46,15 @@ class ModelTestConfiguration(BaseModel):
 
 class EvaluationConfiguration(BaseModel):
     episodes: int
-    max_old_models: int
+    max_models: int
+    uncertainty_penalty_coefficient: float = 3.0
+    discount_factor: float = 1.0
     policy_configuration: ObjectConfiguration = Field(alias = 'policy')
+    true_skill: TrueSkillConfiguration = Field(default_factory = TrueSkillConfiguration)
 
 
-class CapacityConfiguration(BaseModel, extra = 'allow'):
+class CapacityConfiguration(BaseModel):
+    model_config = ConfigDict(extra = 'allow')
     output_size: int | None = None
 
 
@@ -65,7 +88,7 @@ class _BaseAlphaZeroConfiguration(BaseModel):
     trainer: ModelTrainerConfiguration
     collector: CollectorConfiguration
     number_of_epochs: int
-    report_generator: ModelTestConfiguration
+    report_generator: ReportGeneratorConfiguration
     config_file_path: Path
     workspace_path: Path = Field(default = Path("workspace"))
     evaluation: EvaluationConfiguration

@@ -53,7 +53,7 @@ def context(
             file_path: self_play_test
         evaluation:
             episodes: 10
-            max_old_models: 2
+            max_models: 2
             policy:
                 name: DeterministicOraclePolicy
         collector:
@@ -73,12 +73,17 @@ def context(
             learning_rate: 1e-3
             loading_workers: 1
         report_generator:
-            oracle_led_players: ['X']
             number_of_tests: 10
             buckets:
                 - [-1.0, 0.25]
                 - [0.25, 0.75]
                 - [0.75, 2.00]
+            policies:
+                X:
+                    name: DeterministicOraclePolicy
+                    oracle: TrainedOracle
+                O:
+                    name: RandomPolicy
         number_of_epochs: {number_of_epochs}
         config_file_path: test_config.json
         hdf5_path_prefix: test_data

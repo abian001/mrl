@@ -68,18 +68,31 @@ individual sections are described below.
        learning_rate: 1e-3
        loading_workers: 1
    report_generator:
-       oracle_led_players: ['O']
        number_of_tests: 100
        buckets:
            - [-inf, 0.25]
            - [0.25, 0.75]
            - [0.75, +inf]
+       policies:
+           X:
+               name: RandomPolicy
+           O:
+               name: DeterministicOraclePolicy
+               oracle: TrainedOracle
    number_of_epochs: 1
    evaluation:
        episodes: 100
-       max_old_models: 10
+       max_models: 10
+       uncertainty_penalty_coefficient: 3.0
+       discount_factor: 1.0
        policy:
            name: DeterministicOraclePolicy
+       true_skill:
+           mu: 25.0
+           sigma: 8.333
+           beta: 1.476
+           tau: 0.0
+           draw_probability: 0.1
    hdf5_path_prefix: tic_tac_toe_data
    server_hostname: 127.0.0.1
    server_port: 8888
@@ -235,12 +248,17 @@ This section defines the neural network training parameters.
 .. code:: yaml
 
    report_generator:
-       oracle_led_players: ['O']
        number_of_tests: 100
        buckets:
            - [-inf, 0.25]
            - [0.25, 0.75]
            - [0.75, +inf]
+       policies:
+           X:
+               name: RandomPolicy
+           O:
+               name: DeterministicOraclePolicy
+               oracle: TrainedOracle
 
 This section defines how evaluation results are reported.
 
@@ -249,19 +267,39 @@ predecessor (see `evaluation <alpha_zero_evaluation>`_), it is also
 evaluated against a random policy. Its performance against the random
 policy is then reported in the standard output.
 
--  ``oracle_led_players``: players controlled by the trained model
-   during evaluation.
 -  ``number_of_tests``: number of evaluation games to run.
+
 -  ``buckets``: payoff ranges used to group evaluation results.
 
-When a game finishes, the payoff determines which bucket the result
-belongs to. The report summarizes how many games fall into each bucket
-for each observed player.
+-  ``oracles``: optional named oracles available only to the report
+   generator.
 
--  For ``InMemory`` training, the report is generated every epoch after
-   filling the training buffer with training examples.
--  For ``HDF5`` training, the report is generated every time a better
-   model has been trained.
+-  ``shared_policies``: optional named reusable policy configurations.
+
+-  ``policies``: player-to-policy mapping, in the same style as the
+   ``game_runner`` configuration. See the ``Policies``, ``Shared
+   policies``, and ``Shared oracles`` sections in :doc:`game_runner`.
+
+The only difference from the ``game_runner`` format is that the special
+oracle name ``TrainedOracle`` is also available. It refers to the main
+AlphaZero oracle currently being trained.
+
+Players whose effective policy uses ``oracle: TrainedOracle`` are the
+players whose results are reported.
+
+If a player is omitted from ``policies``, the runner uses a default
+policy:
+
+.. code:: yaml
+
+   name: DeterministicOraclePolicy
+   oracle: TrainedOracle
+
+The report is generated every time a better model has been trained. When
+a report is generated, the configured policies play ``number_of_tests``
+games. For each game, the payoff of each observed player determines
+which bucket that result belongs to. The final report then summarizes,
+for each observed player, how many games fell into each bucket.
 
 *************
  Manual play
@@ -313,8 +351,8 @@ also written to this directory.
 The workspace also stores evaluation artifacts:
 
 -  the current best model at ``oracle.file_path``;
--  older best models at ``<oracle_file_path>_old_<numeric_id>``;
--  the persisted evaluation scores for those older models at
+-  saved model checkpoints at ``<oracle_file_path>_<numeric_id>``;
+-  the persisted evaluation ratings for those checkpoints at
    ``<oracle_file_path>_scores.yaml``.
 
 .. _alpha_zero_evaluation:
@@ -327,43 +365,60 @@ The workspace also stores evaluation artifacts:
 
    evaluation:
        episodes: 100
-       max_old_models: 10
+       max_models: 10
+       uncertainty_penalty_coefficient: 3.0
+       discount_factor: 1.0
        policy:
            name: DeterministicOraclePolicy
+       true_skill:
+           mu: 25.0
+           sigma: 8.333
+           beta: 1.476
+           tau: 0.0
+           draw_probability: 0.1
 
 This section defines how newly trained models are compared against older
 saved models.
 
 The model is updated at every epoch. To prevent performance regression,
-each new model is evaluated against previously saved models. If the new
-model performs better according to a set of evaluation tests, it becomes
-the new best model. The previous best model is then added to the list of
-older models for future comparisons.
+each challenger is saved as a separate checkpoint and evaluated against
+the other saved checkpoints. The evaluation uses the policy defined in
+``policy`` for the lead player and the same policy for the opponents,
+with separate oracle instances loaded from the sampled checkpoints.
 
-Older models consist of all models that were previously considered the
-best at some point during training. Each older model is saved as
-``<oracle_file_path>_old_<numeric_id>`` and remains available for
-testing after training is complete. The corresponding evaluation scores
-used to compare against those older models are saved in
-``<oracle_file_path>_scores.yaml`` so they can be restored when training
-resumes.
+All checkpoints are rated with TrueSkill using shared evaluation
+scenarios. The current best model is the checkpoint with the highest
+conservative rating
 
--  ``episodes``: number of games played between the new model and each
-   older model during evaluation.
--  ``max_old_models``: maximum number of older best models retained for
+``mu - uncertainty_penalty_coefficient * sigma``.
+
+The best checkpoint is exposed at ``oracle.file_path``. The underlying
+checkpoint files are stored as ``<oracle_file_path>_<numeric_id>``. The
+persisted ratings used to resume model selection are stored in
+``<oracle_file_path>_scores.yaml``.
+
+-  ``episodes``: number of sampled evaluation scenarios.
+
+-  ``max_models``: maximum number of saved checkpoints retained for
    future comparisons.
--  ``policy``: policy used when the candidate and incumbent models are
-   compared.
 
-The policy is configurable because model quality is relative to the
-policy used to turn the model into actions. A model that performs better
-for one policy is not guaranteed to perform better for another. This can
-happen not only when comparing direct oracle play with MCTS-based play,
-but also when comparing two MCTS policies with different numbers of
-simulations.
+-  ``uncertainty_penalty_coefficient``: penalty applied to the TrueSkill
+   uncertainty ``sigma`` when ranking checkpoints.
 
-In practice, the evaluation policy should match the policy you expect to
-use when the model is deployed.
+-  ``discount_factor``: discount factor used when accumulating observed
+   rewards during evaluation games.
+
+-  ``policy``: policy template used for checkpoint evaluation. It is
+   recommended that this policy matches the one intended for deployment.
+
+-  ``true_skill``: parameters of the TrueSkill rating system used to
+   rank checkpoints.
+
+   -  ``mu``: Initial mean skill estimate.
+   -  ``sigma``: Initial uncertainty in the skill estimate.
+   -  ``beta``: Performance variance controlling expected outcome
+      spread.
+   -  ``tau``: Dynamic factor controlling skill drift over time.
 
 ************************
  HDF5 specific settings

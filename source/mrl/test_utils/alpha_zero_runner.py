@@ -8,7 +8,7 @@ from typing import Protocol, cast, runtime_checkable
 import yaml
 
 from mrl.alpha_zero.context import AlphaZeroContext
-from mrl.alpha_zero.model_evaluation import EvaluationLoop
+from mrl.alpha_zero.report_generator import ReportGenerator
 from mrl.configuration.alpha_zero_runner_configuration import AlphaZeroRunnerConfiguration
 from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
 from mrl.game.game_loop import make_game_loop
@@ -198,10 +198,11 @@ class AlphaZeroRunner:  # pylint: disable=too-many-instance-attributes
     def _run_evaluation(self) -> None:
         oracle: Loadable = cast(Loadable, self.alpha_zero_context.oracle)
         oracle.load(self.alpha_zero_context.oracle_file_path)  # pylint: disable=no-member
-        report_generator = EvaluationLoop(
+        if self.alpha_zero_context.report_generator is None:
+            raise TypeError("Evaluation mode requires a report generator context.")
+        report_generator = ReportGenerator(
             self.alpha_zero_context.game,
-            oracle,
-            self.alpha_zero_context.report_generator
+            self.alpha_zero_context.report_generator,
         )
         report_generator()
 

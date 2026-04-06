@@ -9,7 +9,6 @@ import pytest
 from mrl.alpha_zero.context import HDF5AlphaZeroContext, InMemoryAlphaZeroContext
 from mrl.alpha_zero.alpha_zero import AlphaZero
 from mrl.alpha_zero.distributed_alpha_zero import DistributedAlphaZero
-from mrl.alpha_zero.model_updater import ModelUpdater, AverageScore
 from mrl.alpha_zero.experience_collector import Buffer
 from mrl.configuration.alpha_zero_configuration import AlphaZeroConfiguration
 from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
@@ -63,7 +62,7 @@ def _make_configuration(specification: Specification):
             file_path: resume_model
         evaluation:
             episodes: 2
-            max_old_models: 2
+            max_models: 2
             policy:
                 name: DeterministicOraclePolicy
         collector:
@@ -83,10 +82,15 @@ def _make_configuration(specification: Specification):
             learning_rate: 0.001
             loading_workers: 1
         report_generator:
-            oracle_led_players: ['X']
             number_of_tests: 1
             buckets:
                 - [-1.0, 2.0]
+            policies:
+                X:
+                    name: DeterministicOraclePolicy
+                    oracle: TrainedOracle
+                O:
+                    name: RandomPolicy
         number_of_epochs: 1
         config_file_path: {specification.config_file_path}
         workspace_path: {specification.workspace_path}
@@ -143,55 +147,6 @@ def saved_hdf5_model(
     yield hdf5_specification.model_value
     if os.path.exists(context.oracle_file_path):
         os.remove(context.oracle_file_path)
-
-
-@pytest.fixture
-def old_in_memory_model(
-    in_memory_context: InMemoryAlphaZeroContext
-) -> Generator[str, None, None]:
-    old_model_path = f"{in_memory_context.oracle_file_path}_old_0"
-    oracle = cast(Savable, in_memory_context.oracle)
-    oracle.save(in_memory_context.oracle_file_path)
-    oracle.save(old_model_path)
-    yield old_model_path
-    if os.path.exists(old_model_path):
-        os.remove(old_model_path)
-    if os.path.exists(in_memory_context.oracle_file_path):
-        os.remove(in_memory_context.oracle_file_path)
-
-
-@pytest.mark.quick
-def test_model_updater_restores_scores_from_yaml(
-    in_memory_context: InMemoryAlphaZeroContext,
-    old_in_memory_model: str
-):
-    updater = ModelUpdater(in_memory_context.game, in_memory_context)
-    tracker = AverageScore()
-    tracker.append(0.25)
-    tracker.append(0.75)
-    updater.scores[old_in_memory_model] = tracker
-    oracle: Savable = cast(Savable, in_memory_context.oracle)
-    oracle.save(in_memory_context.oracle_file_path)
-    updater.scores.save(updater.old_models)
-
-    restored = ModelUpdater(in_memory_context.game, in_memory_context)
-    assert old_in_memory_model in restored.scores
-    assert restored.scores[old_in_memory_model].count == 2
-    assert restored.scores[old_in_memory_model].average_score == 0.5
-
-
-@pytest.mark.quick
-def test_model_updater_resume_without_saved_scores_does_not_crash(
-    in_memory_context: InMemoryAlphaZeroContext,
-    old_in_memory_model: str,
-    monkeypatch: pytest.MonkeyPatch
-):
-    _ = old_in_memory_model  # Needed to create the model file.
-    updater = ModelUpdater(in_memory_context.game, in_memory_context)
-    monkeypatch.setattr(updater, "_evaluate_once", lambda lead, opponent: 0.0)
-
-    updater.save_if_better(in_memory_context.oracle)
-    assert os.path.exists(updater.scores_path)
 
 
 @pytest.mark.quick

@@ -135,7 +135,7 @@ The library is built around a few core abstractions:
 -  **State:** Can be any structure, must include `is_final` (and
    `active_player` for turn-based games).
 -  **Perspective:** Defines what each player sees and optionally
-   provides `get_payoff(state)`.
+   provides `get_reward(state)`.
 -  **Policy:** Chooses actions based on observations and action spaces.
 -  **Oracle:** Evaluates states and provides action probabilities (used
    by MCTS and AlphaZero).

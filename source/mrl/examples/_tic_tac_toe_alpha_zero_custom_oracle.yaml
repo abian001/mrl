@@ -27,18 +27,31 @@ trainer:
     learning_rate: 1e-3
     loading_workers: 1
 report_generator:
-    oracle_led_players: ['O']
     number_of_tests: 100
     buckets:
         - [-inf, 0.25]
         - [0.25, 0.75]
         - [0.75, +inf]
+    policies:
+        X:
+            name: RandomPolicy
+        O:
+            name: DeterministicOraclePolicy
+            oracle: TrainedOracle
 number_of_epochs: 1
 evaluation:
     episodes: 100
-    max_old_models: 10
+    max_models: 10
+    uncertainty_penalty_coefficient: 3.0
+    discount_factor: 1.0
     policy:
         name: DeterministicOraclePolicy
+    true_skill:
+        mu: 25.0
+        sigma: 8.333
+        beta: 1.476
+        tau: 0.0
+        draw_probability: 0.1
 hdf5_path_prefix: tic_tac_toe_data_custom_oracle
 server_hostname: 127.0.0.1
 server_port: 8888

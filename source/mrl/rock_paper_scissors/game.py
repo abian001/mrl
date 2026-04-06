@@ -51,7 +51,7 @@ class Perspective:
         _ = state
         return (Action.ROCK, Action.PAPER, Action.SCISSORS)
 
-    def get_payoff(self, state: State) -> float:
+    def get_reward(self, state: State) -> float:
         if state.step == 0:
             return 0.0
         return float(state.wins[self.player]) / float(state.step)

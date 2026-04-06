@@ -4,7 +4,8 @@ COPY pyproject.toml .
 COPY source/ source/
 ENTRYPOINT ["/bin/bash"]
 RUN conda install pytorch -y -c pytorch && \
-    conda install -y pyyaml h5py
+    conda install -y pyyaml h5py && \
+    python3 -m pip install trueskill
 
 
 FROM mrl_base_image as mrl_production_image

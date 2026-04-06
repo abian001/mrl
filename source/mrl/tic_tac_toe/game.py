@@ -52,7 +52,7 @@ class BasePerspective(ABC, Generic[Observation]):
     def get_action_space(self, state: State) -> tuple[Action, ...]:
         return tuple(i for i in range(9) if state.board[i] == Symbol.EMPTY)
 
-    def get_payoff(self, state: State) -> float:
+    def get_reward(self, state: State) -> float:
         if state.winner == self.player:
             return 1.0
         if state.is_final and state.winner is None:
@@ -104,6 +104,13 @@ class BaseTicTacToe(ABC, Generic[Observation]):
             state.winner is not None or
             all(s != Symbol.EMPTY for s in state.board)
         )
+        return state
+
+    def revert(self, state: State, action: Action) -> State:
+        state.board[action] = Symbol.EMPTY
+        state.active_player = Symbol.O if state.active_player is Symbol.X else Symbol.X
+        state.winner = None
+        state.is_final = False
         return state
 
     def _compute_winner(self, state: State) -> Player | None:

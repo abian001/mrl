@@ -27,4 +27,5 @@ Currently, it includes:
    alpha_zero_runner.rst
    development.rst
    limitations.rst
+   release_notes.rst
    references.rst

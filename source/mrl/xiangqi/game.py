@@ -242,7 +242,7 @@ class BasePerspective(ABC, Generic[StateContra, Observation, ActionCo]):
     def get_action_space(self, state: StateContra) -> tuple[ActionCo, ...]:
         return state.action_space
 
-    def get_payoff(self, state: StateContra) -> float:
+    def get_reward(self, state: StateContra) -> float:
         if state.winner == self.player:
             return 1.0
         if state.is_final and state.winner is None:

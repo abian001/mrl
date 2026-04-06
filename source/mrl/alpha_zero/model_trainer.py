@@ -157,9 +157,9 @@ class ModelTrainer:
         loss = Loss()
         for (observation, probabilities, payoff) in data_loader:
             self.optimizer.zero_grad()
-            predicted_payoff, predicted_probabilities = self.model(observation)
+            predicted_payoff, predicted_logits = self.model(observation)
             value_loss = self.value_loss(predicted_payoff, payoff)
-            policy_loss = self.policy_loss(predicted_probabilities, probabilities)
+            policy_loss = self.policy_loss(predicted_logits, probabilities)
             total_loss = value_loss + policy_loss
             total_loss.backward()
             self.optimizer.step()

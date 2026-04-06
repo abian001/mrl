@@ -30,7 +30,6 @@ trainer:
     learning_rate: 1e-3
     loading_workers: 1
 report_generator:
-    oracle_led_players: ['O']
     number_of_tests: 100
     buckets:
         - [-inf, 0.20]
@@ -38,12 +37,24 @@ report_generator:
         - [0.40, 0.60]
         - [0.60, 0.80]
         - [0.80, +inf]
+    policies:
+        O:
+            name: DeterministicOraclePolicy
+            oracle: TrainedOracle
 number_of_epochs: 1
 evaluation:
     episodes: 100
-    max_old_models: 10
+    max_models: 10
+    uncertainty_penalty_coefficient: 3.0
+    discount_factor: 1.0
     policy:
         name: DeterministicOraclePolicy
+    true_skill:
+        mu: 25.0
+        sigma: 8.333
+        beta: 1.476
+        tau: 0.0
+        draw_probability: 0.1
 hdf5_path_prefix: centipede_data
 server_hostname: 127.0.0.1
 server_port: 8888

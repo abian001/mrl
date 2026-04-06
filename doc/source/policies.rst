@@ -54,6 +54,61 @@ This policy represents a human player interacting with the system
 through either standard input (terminal) or the GUI. The action is
 chosen interactively by the user.
 
+*****************
+ AlphaBetaPolicy
+*****************
+
+.. code:: yaml
+
+   name: AlphaBetaPolicy
+   max_depth: 10
+   cache_size: 0
+   number_of_rollouts: 1
+   discount_factor: 1.0
+   oracle: null
+
+This policy performs alpha-beta search on deterministic turn-based games
+with a discrete action space.
+
+The search is evaluated from the perspective of the initial active
+player. On turns where a different player is active, the policy assumes
+that player seeks to minimize the initial player's reward. This matches
+the standard two-player adversarial search formulation.
+
+The policy can still be executed on multiplayer games, but the
+minimizing-opponent assumption is only an approximation there and does
+not guarantee optimal play.
+
+The policy performs a depth-first search and explores actions in random
+order. As a result, when multiple actions yield similar payoff values,
+the policy may return different actions across runs.
+
+The parameters have the following meaning:
+
+-  ``discount_factor``: Discount factor applied to state rewards when
+   computing the final payoff.
+
+-  ``max_depth``: Maximum search depth, measured in plies from the root.
+   number_of_rollouts: Number of rollout simulations performed when the
+   maximum depth is reached. Each rollout continues until the game
+   terminates, and the final payoff is computed as the average across
+   all rollouts.
+
+-  ``oracle``: Oracle used during the rollout stage. If undefined, a
+   random policy is used. If defined and number_of_rollouts is 1, the
+   ``DeterministicOraclePolicy`` is used. If number_of_rollouts is
+   greater than 1, the ``StochasticOraclePolicy`` is used.
+
+-  ``cache_size``: Number of root-state decisions cached. A value of
+   ``0`` disables caching and results in standard alpha-beta behavior.
+   Note that enabling caching removes randomness, making the policy
+   deterministic.
+
+If the game implements the ``TurnBasedRevertible`` protocol, the policy
+avoids creating state copies during search. Instead, states are updated
+in-place and reverted after exploration. This significantly reduces
+memory allocations and can substantially improve search performance.
+
 ***************************
  DeterministicOraclePolicy
 ***************************
@@ -138,8 +193,8 @@ The parameters have the following meaning:
 -  ``pucb_constant``: exploration weight. Higher values encourage
    exploration of less-visited actions.
 
--  ``discount_factor``: discount applied to payoffs that occur later in
-   the game.
+-  ``discount_factor``: discount applied to rewards that occur in the
+   game.
 
 -  ``dirichlet_alpha``: concentration parameter used when sampling
    optional Dirichlet noise for the root priors. Smaller values produce
@@ -175,11 +230,6 @@ selects the final action stochastically.
 Instead of choosing the most visited action, the policy samples from the
 distribution defined by the visit counts of the actions explored during
 the search.
-
-When ``dirichlet_weight`` is positive, Dirichlet noise is mixed into the
-root priors once per search. This is the AlphaZero-style exploration
-mechanism used to diversify self-play games without injecting noise into
-internal tree nodes.
 
 The ``temperature`` parameter controls the amount of randomness:
 

@@ -8,7 +8,7 @@ import torch
 from mrl.alpha_zero.context import HDF5AlphaZeroContext
 from mrl.alpha_zero.oracle import TrainableOracle
 from mrl.alpha_zero.model_trainer import ModelTrainer
-from mrl.alpha_zero.model_evaluation  import EvaluationLoop
+from mrl.alpha_zero.report_generator import ReportGenerator
 from mrl.alpha_zero.model_updater import ModelUpdater
 
 
@@ -137,36 +137,33 @@ class DistributedAlphaZero:
             )
         self.model_trainer = ModelTrainer(self.model, context.trainer)
 
-        self.model_updater = ModelUpdater(context.game, context)
+        self.model_updater = ModelUpdater(
+            context.game,
+            context.evaluation,
+            context.oracle_file_path,
+        )
 
         self.report_generator: Callable[[], None]
         if context.report_generator is None:
             self.report_generator = lambda: None
         else:
-            self.report_generator = EvaluationLoop(
-                context.game,
-                self.model,
-                context.report_generator
-            )
+            self.report_generator = ReportGenerator(context.game, context.report_generator)
 
     def train(self, resume: bool = True):
         asyncio.run(self._train(resume))
 
     async def _train(self, resume: bool = True):
-        if resume and os.path.exists(self.context.oracle_file_path):
-            self.model.load(self.context.oracle_file_path)
-        else:
-            self.model.save(self.context.oracle_file_path)
+        self.model_updater.load_or_initialize_model(self.model, resume)
         async with ExperienceCollector(self.context) as experience_collector:
             async for file_path in experience_collector.get_files():
-                better_model = self._process_once(file_path)
-                if better_model:
+                best_model_was_updated = self._process_once(file_path)
+                if best_model_was_updated:
                     await experience_collector.notify_better_model()
 
-    def _process_once(self, file_path):
+    def _process_once(self, file_path: str) -> bool:
         self.model_trainer.train_from_hdf5(file_path)
         os.remove(file_path)
-        better_model = self.model_updater.save_if_better(self.model)
-        if better_model:
+        model_is_accepted = self.model_updater.save_if_accepted(self.model)
+        if model_is_accepted:
             self.report_generator()
-        return better_model
+        return self.model_updater.best_model_was_updated

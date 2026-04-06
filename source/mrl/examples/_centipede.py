@@ -40,16 +40,16 @@ class Perspective:
     def get_observation(self, state: State) -> MCTSObservation:
         return MCTSObservation(state, self)
 
-    def get_payoff(self, state: State) -> float:
+    def get_reward(self, state: State) -> float:
         if state.winner is self.opponent:
             return 0.0
-        base_payoff = 1 - math.exp(- math.log(state.value))
+        base_reward = 1 - math.exp(- math.log(state.value))
         if state.winner is self.player:
-            return base_payoff
-        return base_payoff / 2.0
+            return base_reward
+        return base_reward / 2.0
 
     def get_core(self, state: State) -> np.ndarray:
-        return np.fromiter((self.get_payoff(state),), dtype = float)
+        return np.fromiter((self.get_reward(state),), dtype = float)
 
     def get_action_space(self, state: State) -> tuple[Action, ...]:
         return (Action.TAKE, Action.LEAVE)

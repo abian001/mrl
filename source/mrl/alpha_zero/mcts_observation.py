@@ -6,14 +6,14 @@ from mrl.game.game import (
     FinalCheckable,
     StateContra,
     ActionCo,
-    PayoffPerspective,
+    RewardPerspective,
     HasActionSpaceDimension
 )
 
 
 @runtime_checkable
 class MCTSPerspective(
-    PayoffPerspective,
+    RewardPerspective,
     HasActionSpaceDimension,
     Protocol[StateContra, ActionCo]
 ):  # pylint: disable=duplicate-bases
@@ -41,16 +41,16 @@ class MCTSObservation(Generic[FinalCheckableState, Action]):
     ):
         self.state = state
         self.perspective = perspective
-        self._payoff: float | None = None
+        self._reward: float | None = None
         self._core: np.ndarray | None = None
         self._legal_mask: np.ndarray | None = None
         self._action_space: tuple[Action, ...] | None = None
 
     @property
-    def payoff(self) -> float:
-        if self._payoff is None:
-            self._payoff = self.perspective.get_payoff(self.state)
-        return self._payoff
+    def reward(self) -> float:
+        if self._reward is None:
+            self._reward = self.perspective.get_reward(self.state)
+        return self._reward
 
     @property
     def core(self) -> np.ndarray:

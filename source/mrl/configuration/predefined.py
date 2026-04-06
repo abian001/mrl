@@ -19,6 +19,7 @@ predefined_modules = {
     'RandomPolicy': 'mrl.test_utils.policies',
     'FirstChoicePolicy': 'mrl.test_utils.policies',
     'ManualPolicy': 'mrl.test_utils.policies',
+    'AlphaBetaPolicy': 'mrl.test_utils.policies',
     'OpenSpielMLP': 'mrl.alpha_zero.models',
     'OpenSpielConv': 'mrl.alpha_zero.models',
     'OpenSpielResnet': 'mrl.alpha_zero.models',
