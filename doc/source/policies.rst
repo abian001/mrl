@@ -231,11 +231,6 @@ Instead of choosing the most visited action, the policy samples from the
 distribution defined by the visit counts of the actions explored during
 the search.
 
-When ``dirichlet_weight`` is positive, Dirichlet noise is mixed into the
-root priors once per search. This is the AlphaZero-style exploration
-mechanism used to diversify self-play games without injecting noise into
-internal tree nodes.
-
 The ``temperature`` parameter controls the amount of randomness:
 
 -  ``temperature = 1.0``: the sampling distribution directly reflects
