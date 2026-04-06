@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -193,7 +194,7 @@ the number of simulations, episodes, or epochs.</p></li>
 <li><p><strong>State:</strong> Can be any structure, must include <cite>is_final</cite> (and
 <cite>active_player</cite> for turn-based games).</p></li>
 <li><p><strong>Perspective:</strong> Defines what each player sees and optionally
-provides <cite>get_payoff(state)</cite>.</p></li>
+provides <cite>get_reward(state)</cite>.</p></li>
 <li><p><strong>Policy:</strong> Chooses actions based on observations and action spaces.</p></li>
 <li><p><strong>Oracle:</strong> Evaluates states and provides action probabilities (used
 by MCTS and AlphaZero).</p></li>

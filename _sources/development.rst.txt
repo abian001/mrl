@@ -15,6 +15,7 @@ You need a Python environment with the following dependencies:
    - pyyaml 6.0.3
    - h5py 3.15.1
    - pydantic 2.12.4
+   - trueskill 0.4.5
    - make 4.4.1
    - graphviz 2.42.4
    - pylint 4.0.4

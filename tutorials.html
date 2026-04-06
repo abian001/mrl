@@ -70,6 +70,7 @@
 <li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -107,6 +108,7 @@
 -<span class="w"> </span>pyyaml<span class="w"> </span><span class="m">6</span>.0.3
 -<span class="w"> </span>h5py<span class="w"> </span><span class="m">3</span>.15.1
 -<span class="w"> </span>pydantic<span class="w"> </span><span class="m">2</span>.12.4
+-<span class="w"> </span>trueskill<span class="w"> </span><span class="m">0</span>.4.5
 </pre></div>
 </div>
 <p>You can use the Dockerfile to create a Docker image.</p>
@@ -240,8 +242,10 @@ player in the current state.</p></li>
 </ul>
 <p>This is a full-information game, so the observation is identical to the
 state. If you want to evaluate play statistics using the game runner,
-you must also implement a <code class="docutils literal notranslate"><span class="pre">get_payoff</span></code> method that returns a numerical
-value representing the outcome of the game.</p>
+you must also implement a <code class="docutils literal notranslate"><span class="pre">get_reward</span></code> method that returns a numerical
+value representing the reward obtained upon reaching a state. The final
+payoff is defined as the sum of all rewards accumulated throughout the
+game.</p>
 <p>The game class itself represents the game rules. It must implement:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">make_initial_state</span></code> to generate the initial state;</p></li>
@@ -274,7 +278,7 @@ implement <code class="docutils literal notranslate"><span class="pre">notify_ac
 <h2>MCTS Game customization<a class="headerlink" href="#mcts-game-customization" title="Link to this heading"></a></h2>
 <p>The coordination game described above is not suitable for AlphaZero.</p>
 <p>The AlphaZero algorithm implemented here only supports turn-based,
-restorable games with a discrete action space and a payoff-observable
+restorable games with a discrete action space and a reward-observable
 perspective. The perspective must also be able to encode the state and
 action space in an array format suitable for neural network processing.</p>
 <p>The Centipede game provides an example of such a game.</p>
@@ -282,7 +286,7 @@ action space in an array format suitable for neural network processing.</p>
 an <code class="docutils literal notranslate"><span class="pre">MCTSObservation</span></code>. This object lazily collects the information
 required by the algorithm when needed.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">get_core</span></code> method returns a vector representation of the state. In
-this example it is a one-dimensional vector containing the payoff the
+this example it is a one-dimensional vector containing the reward the
 player would receive by choosing the <code class="docutils literal notranslate"><span class="pre">TAKE</span></code> action at the current
 turn.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">get_action_space</span></code> method returns the list of actions available in
@@ -347,7 +351,7 @@ playing against the trained model.</p>
 capacity to learn complex strategies)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">number_of_processes</span></code>: set to 4 (to speed-up data
 collection)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">mcts.</span> <span class="pre">number_of_simulation</span></code>: set to 225 (to obtain
+<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">mcts.</span> <span class="pre">number_of_simulations</span></code>: set to 225 (to obtain
 better move evaluations)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">number_of_episodes</span></code>: set to 100 (to simulate more games
 for each training epoch)</p></li>
@@ -360,12 +364,22 @@ trained enough for each batch of training examples)</p></li>
 <p>After applying the changes described above, the following results were
 obtained in my tests:</p>
 <ul class="simple">
-<li><p>InMemory strategy: After 16 minutes of training, the model achieved
-an average payoff of 0.93, with a 90% win rate and a 4% loss rate
-against the random policy.</p></li>
-<li><p>HDF5 strategy: After 7 minutes of training, the model achieved an
-average payoff of 0.88, with a 85% win rate and a 9% loss rate
-against the random policy.</p></li>
+<li><p>InMemory strategy: After 16 minutes of training, the model achieved</p>
+<ul>
+<li><p>an average payoff of 0.92, with a 87% win rate and a 5% loss rate
+against the random policy;</p></li>
+<li><p>an average payoff of 0.36, with a 72% draw rate and a 28% loss
+rate against the optimal AlphaBetaPolicy.</p></li>
+</ul>
+</li>
+<li><p>HDF5 strategy: After 8 minutes of training, the model achieved</p>
+<ul>
+<li><p>an average payoff of 0.85, with a 81% win rate and a 11% loss rate
+against the random policy;</p></li>
+<li><p>an average payoff of 0.31, with a 62% draw rate and a 38% loss
+rate against the optimal AlphaBetaPolicy.</p></li>
+</ul>
+</li>
 </ul>
 </section>
 </section>

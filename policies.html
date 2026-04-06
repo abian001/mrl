@@ -52,6 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#randompolicy">RandomPolicy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#firstchoicepolicy">FirstChoicePolicy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#manualpolicy">ManualPolicy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alphabetapolicy">AlphaBetaPolicy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#deterministicoraclepolicy">DeterministicOraclePolicy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stochasticoraclepolicy">StochasticOraclePolicy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mctspolicy">MCTSPolicy</a></li>
@@ -64,6 +65,7 @@
 <li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -132,6 +134,51 @@ action space. As a precondition, the action space must be a sequence.</p>
 through either standard input (terminal) or the GUI. The action is
 chosen interactively by the user.</p>
 </section>
+<section id="alphabetapolicy">
+<h2>AlphaBetaPolicy<a class="headerlink" href="#alphabetapolicy" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AlphaBetaPolicy</span>
+<span class="nt">max_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="nt">cache_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">number_of_rollouts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="nt">oracle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+</pre></div>
+</div>
+<p>This policy performs alpha-beta search on deterministic turn-based games
+with a discrete action space.</p>
+<p>The search is evaluated from the perspective of the initial active
+player. On turns where a different player is active, the policy assumes
+that player seeks to minimize the initial player’s reward. This matches
+the standard two-player adversarial search formulation.</p>
+<p>The policy can still be executed on multiplayer games, but the
+minimizing-opponent assumption is only an approximation there and does
+not guarantee optimal play.</p>
+<p>The policy performs a depth-first search and explores actions in random
+order. As a result, when multiple actions yield similar payoff values,
+the policy may return different actions across runs.</p>
+<p>The parameters have the following meaning:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code>: Discount factor applied to state rewards when
+computing the final payoff.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code>: Maximum search depth, measured in plies from the root.
+number_of_rollouts: Number of rollout simulations performed when the
+maximum depth is reached. Each rollout continues until the game
+terminates, and the final payoff is computed as the average across
+all rollouts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">oracle</span></code>: Oracle used during the rollout stage. If undefined, a
+random policy is used. If defined and number_of_rollouts is 1, the
+<code class="docutils literal notranslate"><span class="pre">DeterministicOraclePolicy</span></code> is used. If number_of_rollouts is
+greater than 1, the <code class="docutils literal notranslate"><span class="pre">StochasticOraclePolicy</span></code> is used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_size</span></code>: Number of root-state decisions cached. A value of
+<code class="docutils literal notranslate"><span class="pre">0</span></code> disables caching and results in standard alpha-beta behavior.
+Note that enabling caching removes randomness, making the policy
+deterministic.</p></li>
+</ul>
+<p>If the game implements the <code class="docutils literal notranslate"><span class="pre">TurnBasedRevertible</span></code> protocol, the policy
+avoids creating state copies during search. Instead, states are updated
+in-place and reverted after exploration. This significantly reduces
+memory allocations and can substantially improve search performance.</p>
+</section>
 <section id="deterministicoraclepolicy">
 <h2>DeterministicOraclePolicy<a class="headerlink" href="#deterministicoraclepolicy" title="Link to this heading"></a></h2>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
@@ -197,8 +244,8 @@ been visited most often during the search.</p>
 decision.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">pucb_constant</span></code>: exploration weight. Higher values encourage
 exploration of less-visited actions.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code>: discount applied to payoffs that occur later in
-the game.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code>: discount applied to rewards that occur in the
+game.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dirichlet_alpha</span></code>: concentration parameter used when sampling
 optional Dirichlet noise for the root priors. Smaller values produce
 spikier noise.</p></li>
@@ -227,10 +274,6 @@ selects the final action stochastically.</p>
 <p>Instead of choosing the most visited action, the policy samples from the
 distribution defined by the visit counts of the actions explored during
 the search.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">dirichlet_weight</span></code> is positive, Dirichlet noise is mixed into the
-root priors once per search. This is the AlphaZero-style exploration
-mechanism used to diversify self-play games without injecting noise into
-internal tree nodes.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">temperature</span></code> parameter controls the amount of randomness:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">=</span> <span class="pre">1.0</span></code>: the sampling distribution directly reflects

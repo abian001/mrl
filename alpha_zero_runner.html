@@ -70,6 +70,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -158,18 +159,31 @@ individual sections are described below.</p>
 <span class="w">    </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
 <span class="w">    </span><span class="nt">loading_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="nt">report_generator</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">oracle_led_players</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;O&#39;</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-inf</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.25</span><span class="p p-Indicator">]</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.25</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.75</span><span class="p p-Indicator">]</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.75</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">policies</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">X</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomPolicy</span>
+<span class="w">        </span><span class="nt">O</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="w">            </span><span class="nt">oracle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TrainedOracle</span>
 <span class="nt">number_of_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="nt">evaluation</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
-<span class="w">    </span><span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">max_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">uncertainty_penalty_coefficient</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+<span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">    </span><span class="nt">policy</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="w">    </span><span class="nt">true_skill</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">mu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25.0</span>
+<span class="w">        </span><span class="nt">sigma</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.333</span>
+<span class="w">        </span><span class="nt">beta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.476</span>
+<span class="w">        </span><span class="nt">tau</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">        </span><span class="nt">draw_probability</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
 <span class="nt">hdf5_path_prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tic_tac_toe_data</span>
 <span class="nt">server_hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
 <span class="nt">server_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8888</span>
@@ -300,12 +314,17 @@ training data.</p></li>
 <section id="report-generator">
 <h2>Report generator<a class="headerlink" href="#report-generator" title="Link to this heading"></a></h2>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">report_generator</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">oracle_led_players</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;O&#39;</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-inf</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.25</span><span class="p p-Indicator">]</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.25</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.75</span><span class="p p-Indicator">]</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.75</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">+inf</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">policies</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">X</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RandomPolicy</span>
+<span class="w">        </span><span class="nt">O</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="w">            </span><span class="nt">oracle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TrainedOracle</span>
 </pre></div>
 </div>
 <p>This section defines how evaluation results are reported.</p>
@@ -314,20 +333,31 @@ predecessor (see <a class="reference external" href="alpha_zero_evaluation">eval
 evaluated against a random policy. Its performance against the random
 policy is then reported in the standard output.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">oracle_led_players</span></code>: players controlled by the trained model
-during evaluation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">number_of_tests</span></code>: number of evaluation games to run.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">buckets</span></code>: payoff ranges used to group evaluation results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">oracles</span></code>: optional named oracles available only to the report
+generator.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shared_policies</span></code>: optional named reusable policy configurations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">policies</span></code>: player-to-policy mapping, in the same style as the
+<code class="docutils literal notranslate"><span class="pre">game_runner</span></code> configuration. See the <code class="docutils literal notranslate"><span class="pre">Policies</span></code>, <code class="docutils literal notranslate"><span class="pre">Shared</span>
+<span class="pre">policies</span></code>, and <code class="docutils literal notranslate"><span class="pre">Shared</span> <span class="pre">oracles</span></code> sections in <a class="reference internal" href="game_runner.html"><span class="doc">Game runner</span></a>.</p></li>
 </ul>
-<p>When a game finishes, the payoff determines which bucket the result
-belongs to. The report summarizes how many games fall into each bucket
-for each observed player.</p>
-<ul class="simple">
-<li><p>For <code class="docutils literal notranslate"><span class="pre">InMemory</span></code> training, the report is generated every epoch after
-filling the training buffer with training examples.</p></li>
-<li><p>For <code class="docutils literal notranslate"><span class="pre">HDF5</span></code> training, the report is generated every time a better
-model has been trained.</p></li>
-</ul>
+<p>The only difference from the <code class="docutils literal notranslate"><span class="pre">game_runner</span></code> format is that the special
+oracle name <code class="docutils literal notranslate"><span class="pre">TrainedOracle</span></code> is also available. It refers to the main
+AlphaZero oracle currently being trained.</p>
+<p>Players whose effective policy uses <code class="docutils literal notranslate"><span class="pre">oracle:</span> <span class="pre">TrainedOracle</span></code> are the
+players whose results are reported.</p>
+<p>If a player is omitted from <code class="docutils literal notranslate"><span class="pre">policies</span></code>, the runner uses a default
+policy:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="nt">oracle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TrainedOracle</span>
+</pre></div>
+</div>
+<p>The report is generated every time a better model has been trained. When
+a report is generated, the configured policies play <code class="docutils literal notranslate"><span class="pre">number_of_tests</span></code>
+games. For each game, the payoff of each observed player determines
+which bucket that result belongs to. The final report then summarizes,
+for each observed player, how many games fell into each bucket.</p>
 </section>
 <section id="manual-play">
 <h2>Manual play<a class="headerlink" href="#manual-play" title="Link to this heading"></a></h2>
@@ -368,8 +398,8 @@ also written to this directory.</p>
 <p>The workspace also stores evaluation artifacts:</p>
 <ul class="simple">
 <li><p>the current best model at <code class="docutils literal notranslate"><span class="pre">oracle.file_path</span></code>;</p></li>
-<li><p>older best models at <code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_old_&lt;numeric_id&gt;</span></code>;</p></li>
-<li><p>the persisted evaluation scores for those older models at
+<li><p>saved model checkpoints at <code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_&lt;numeric_id&gt;</span></code>;</p></li>
+<li><p>the persisted evaluation ratings for those checkpoints at
 <code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_scores.yaml</span></code>.</p></li>
 </ul>
 </section>
@@ -377,41 +407,55 @@ also written to this directory.</p>
 <span id="id1"></span><h2>Evaluation<a class="headerlink" href="#alpha-zero-evaluation" title="Link to this heading"></a></h2>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">evaluation</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">episodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
-<span class="w">    </span><span class="nt">max_old_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">max_models</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">uncertainty_penalty_coefficient</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+<span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">    </span><span class="nt">policy</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DeterministicOraclePolicy</span>
+<span class="w">    </span><span class="nt">true_skill</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">mu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25.0</span>
+<span class="w">        </span><span class="nt">sigma</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.333</span>
+<span class="w">        </span><span class="nt">beta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.476</span>
+<span class="w">        </span><span class="nt">tau</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">        </span><span class="nt">draw_probability</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
 </pre></div>
 </div>
 <p>This section defines how newly trained models are compared against older
 saved models.</p>
 <p>The model is updated at every epoch. To prevent performance regression,
-each new model is evaluated against previously saved models. If the new
-model performs better according to a set of evaluation tests, it becomes
-the new best model. The previous best model is then added to the list of
-older models for future comparisons.</p>
-<p>Older models consist of all models that were previously considered the
-best at some point during training. Each older model is saved as
-<code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_old_&lt;numeric_id&gt;</span></code> and remains available for
-testing after training is complete. The corresponding evaluation scores
-used to compare against those older models are saved in
-<code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_scores.yaml</span></code> so they can be restored when training
-resumes.</p>
+each challenger is saved as a separate checkpoint and evaluated against
+the other saved checkpoints. The evaluation uses the policy defined in
+<code class="docutils literal notranslate"><span class="pre">policy</span></code> for the lead player and the same policy for the opponents,
+with separate oracle instances loaded from the sampled checkpoints.</p>
+<p>All checkpoints are rated with TrueSkill using shared evaluation
+scenarios. The current best model is the checkpoint with the highest
+conservative rating</p>
+<p><code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">-</span> <span class="pre">uncertainty_penalty_coefficient</span> <span class="pre">*</span> <span class="pre">sigma</span></code>.</p>
+<p>The best checkpoint is exposed at <code class="docutils literal notranslate"><span class="pre">oracle.file_path</span></code>. The underlying
+checkpoint files are stored as <code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_&lt;numeric_id&gt;</span></code>. The
+persisted ratings used to resume model selection are stored in
+<code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_scores.yaml</span></code>.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">episodes</span></code>: number of games played between the new model and each
-older model during evaluation.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_old_models</span></code>: maximum number of older best models retained for
+<li><p><code class="docutils literal notranslate"><span class="pre">episodes</span></code>: number of sampled evaluation scenarios.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_models</span></code>: maximum number of saved checkpoints retained for
 future comparisons.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">policy</span></code>: policy used when the candidate and incumbent models are
-compared.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uncertainty_penalty_coefficient</span></code>: penalty applied to the TrueSkill
+uncertainty <code class="docutils literal notranslate"><span class="pre">sigma</span></code> when ranking checkpoints.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code>: discount factor used when accumulating observed
+rewards during evaluation games.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">policy</span></code>: policy template used for checkpoint evaluation. It is
+recommended that this policy matches the one intended for deployment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">true_skill</span></code>: parameters of the TrueSkill rating system used to
+rank checkpoints.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">mu</span></code>: Initial mean skill estimate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code>: Initial uncertainty in the skill estimate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">beta</span></code>: Performance variance controlling expected outcome
+spread.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tau</span></code>: Dynamic factor controlling skill drift over time.</p></li>
 </ul>
-<p>The policy is configurable because model quality is relative to the
-policy used to turn the model into actions. A model that performs better
-for one policy is not guaranteed to perform better for another. This can
-happen not only when comparing direct oracle play with MCTS-based play,
-but also when comparing two MCTS policies with different numbers of
-simulations.</p>
-<p>In practice, the evaluation policy should match the policy you expect to
-use when the model is deployed.</p>
+</li>
+</ul>
 </section>
 <section id="hdf5-specific-settings">
 <h2>HDF5 specific settings<a class="headerlink" href="#hdf5-specific-settings" title="Link to this heading"></a></h2>

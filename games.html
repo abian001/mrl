@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="alpha_zero_runner.html">Alpha Zero runner</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -152,21 +153,21 @@ following protocols:</p>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the game state according to the action of the active player&quot;&quot;&quot;</span>
 
 
- <span class="k">class</span><span class="w"> </span><span class="nc">PayoffObservable</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">Player</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]):</span>
+ <span class="k">class</span><span class="w"> </span><span class="nc">RewardObservable</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">Player</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]):</span>
 
      <span class="nd">@abstractmethod</span>
-     <span class="k">def</span><span class="w"> </span><span class="nf">get_perspectives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Player</span><span class="p">,</span> <span class="n">PayoffPerspective</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]]:</span>
-<span class="w">         </span><span class="sd">&quot;&quot;&quot;Return the player payoff perspectives.&quot;&quot;&quot;</span>
+     <span class="k">def</span><span class="w"> </span><span class="nf">get_perspectives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Player</span><span class="p">,</span> <span class="n">RewardPerspective</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]]:</span>
+<span class="w">         </span><span class="sd">&quot;&quot;&quot;Return the player perspectives.&quot;&quot;&quot;</span>
 </pre></div>
 </div>
 <p>In addition the perspective for an MCTS game must implemet the following
 protocols:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@runtime_checkable</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">PayoffPerspective</span><span class="p">(</span><span class="n">Perspective</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RewardPerspective</span><span class="p">(</span><span class="n">Perspective</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">[</span><span class="n">StateContra</span><span class="p">,</span> <span class="n">ObservationCo</span><span class="p">]):</span>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_payoff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns observed payoff in the given state&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StateContra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Reward</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns observed reward in the given state&quot;&quot;&quot;</span>
 
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HasActionSpaceDimension</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
