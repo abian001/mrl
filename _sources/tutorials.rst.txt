@@ -189,7 +189,7 @@ a valid perspective must implement two methods:
 This is a full-information game, so the observation is identical to the
 state. If you want to evaluate play statistics using the game runner,
 you must also implement a ``get_payoff`` method that returns a numerical
-value representing the reward obtained upon reaching a state.
+value representing the outcome of the game.
 
 The game class itself represents the game rules. It must implement:
 
@@ -326,7 +326,7 @@ For example, you can modify the following parameters:
    capacity to learn complex strategies)
 -  ``collector. number_of_processes``: set to 4 (to speed-up data
    collection)
--  ``collector. mcts. number_of_simulations``: set to 225 (to obtain
+-  ``collector. mcts. number_of_simulation``: set to 225 (to obtain
    better move evaluations)
 -  ``collector. number_of_episodes``: set to 100 (to simulate more games
    for each training epoch)

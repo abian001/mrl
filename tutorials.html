@@ -241,7 +241,7 @@ player in the current state.</p></li>
 <p>This is a full-information game, so the observation is identical to the
 state. If you want to evaluate play statistics using the game runner,
 you must also implement a <code class="docutils literal notranslate"><span class="pre">get_payoff</span></code> method that returns a numerical
-value representing the reward obtained upon reaching a state.</p>
+value representing the outcome of the game.</p>
 <p>The game class itself represents the game rules. It must implement:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">make_initial_state</span></code> to generate the initial state;</p></li>
@@ -347,7 +347,7 @@ playing against the trained model.</p>
 capacity to learn complex strategies)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">number_of_processes</span></code>: set to 4 (to speed-up data
 collection)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">mcts.</span> <span class="pre">number_of_simulations</span></code>: set to 225 (to obtain
+<li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">mcts.</span> <span class="pre">number_of_simulation</span></code>: set to 225 (to obtain
 better move evaluations)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">collector.</span> <span class="pre">number_of_episodes</span></code>: set to 100 (to simulate more games
 for each training epoch)</p></li>
