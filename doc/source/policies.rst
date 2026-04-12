@@ -164,6 +164,7 @@ distribution.
    mcts:
        number_of_simulations: 10
        pucb_constant: 0.5
+       pucb_increase: 0.0
        discount_factor: 0.99
        dirichlet_alpha: 0.0
        dirichlet_weight: 0.0
@@ -190,8 +191,13 @@ The parameters have the following meaning:
 -  ``number_of_simulations``: number of simulations performed for each
    decision.
 
--  ``pucb_constant``: exploration weight. Higher values encourage
-   exploration of less-visited actions.
+-  ``pucb_constant``: baseline exploration weight. Higher values
+   encourage exploration of less-visited actions.
+
+-  ``pucb_increase``: additional exploration growth factor. The
+   effective exploration weight is
+   ``pucb_constant + log(pucb_increase * (parent_visits + 1) + 1)``.
+   A value of ``0.0`` keeps the standard fixed constant behavior.
 
 -  ``discount_factor``: discount applied to rewards that occur in the
    game.
@@ -219,6 +225,7 @@ The parameters have the following meaning:
    mcts:
        number_of_simulations: 10
        pucb_constant: 0.5
+       pucb_increase: 0.0
        discount_factor: 0.99
        dirichlet_alpha: 0.3
        dirichlet_weight: 0.25
@@ -253,6 +260,7 @@ The ``temperature`` parameter controls the amount of randomness:
    mcts:
        number_of_simulations: 10
        pucb_constant: 0.5
+       pucb_increase: 0.0
        discount_factor: 0.99
 
 This policy behaves similarly to ``MCTSPolicy`` but retains the results

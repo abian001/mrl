@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import math
 import numpy as np
 import pytest
 from mrl.tic_tac_toe.game import Player
@@ -7,7 +8,8 @@ from mrl.alpha_zero.mcts import (
     MCTSGame,
     MCTSPolicy,
     NonDeterministicMCTSPolicy,
-    MCTSConfiguration
+    MCTSConfiguration,
+    StateNode
 )
 from mrl.alpha_zero.mcts_observation import MCTSObservation
 from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
@@ -52,7 +54,8 @@ def policy(tic_tac_toe: tuple[MCTSGame, Oracle], policy_data: PolicyData) -> MCT
         oracle = oracle,
         mcts = MCTSConfiguration(
             number_of_simulations = policy_data.number_of_simulations,
-            pucb_constant = 1.0
+            pucb_constant = 1.0,
+            pucb_increase = 0.0
         )
     )
 
@@ -109,6 +112,7 @@ def test_mcts_prefers_first_move_after_two_simulations(tic_tac_toe: tuple[MCTSGa
         mcts = MCTSConfiguration(
             number_of_simulations = 2,
             pucb_constant = 1.0,
+            pucb_increase = 0.0,
             temperature = 1.0
         )
     )
@@ -152,6 +156,7 @@ def test_mcts_normalizes_temperature_adjusted_root_probabilities(
         mcts = MCTSConfiguration(
             number_of_simulations = 2,
             pucb_constant = 1.0,
+            pucb_increase = 0.0,
             temperature = 0.5
         )
     )
@@ -203,6 +208,7 @@ def test_mcts_applies_dirichlet_noise_at_root(
         mcts = MCTSConfiguration(
             number_of_simulations = 1,
             pucb_constant = 1.0,
+            pucb_increase = 0.0,
             temperature = 1.0,
             dirichlet_alpha = 0.3,
             dirichlet_weight = 1.0
@@ -254,7 +260,8 @@ def test_mcts_caches_root_priors_between_simulations(tic_tac_toe: tuple[MCTSGame
         oracle = oracle,
         mcts = MCTSConfiguration(
             number_of_simulations = 2,
-            pucb_constant = 1.0
+            pucb_constant = 1.0,
+            pucb_increase = 0.0
         )
     )
     state = game.make_initial_state()
@@ -276,7 +283,8 @@ def test_mcts_caches_child_priors_when_revisiting_same_node(
         oracle = oracle,
         mcts = MCTSConfiguration(
             number_of_simulations = 3,
-            pucb_constant = 1.0
+            pucb_constant = 1.0,
+            pucb_increase = 0.0
         )
     )
     state = game.make_initial_state()
@@ -299,6 +307,7 @@ def test_mcts_returns_one_hot_probabilities_for_zero_temperature(
         mcts = MCTSConfiguration(
             number_of_simulations = 2,
             pucb_constant = 1.0,
+            pucb_increase = 0.0,
             temperature = 0.0
         )
     )
@@ -313,3 +322,24 @@ def test_mcts_returns_one_hot_probabilities_for_zero_temperature(
     assert action == 0
     assert probabilities[0] == pytest.approx(1.0)
     assert probabilities[1:].sum() == pytest.approx(0.0)
+
+
+@pytest.mark.quick
+def test_pucb_increase_raises_exploration_weight_with_parent_visits():
+    policy = MCTSPolicy(
+        game = MCTSTicTacToe(),
+        oracle = TestOracle(),
+        mcts = MCTSConfiguration(
+            number_of_simulations = 1,
+            pucb_constant = 0.5,
+            pucb_increase = 2.0
+        )
+    ).pucb_policy
+    policy.state_node = StateNode(visits = 0)
+
+    initial_weight = policy._get_pucb_exploration_weight()
+
+    policy.state_node.visits = 8
+
+    assert initial_weight == pytest.approx(math.log(3.0) + 0.5)
+    assert policy._get_pucb_exploration_weight() == pytest.approx(math.log(19.0) + 0.5)

@@ -33,6 +33,7 @@ correctness_test_data: tuple[CorrectnessTestData, ...] = (
             mcts = MCTSConfiguration(
                 number_of_simulations = 1,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 6,
@@ -63,6 +64,7 @@ correctness_test_data: tuple[CorrectnessTestData, ...] = (
             mcts = MCTSConfiguration(
                 number_of_simulations = 1,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 12,
@@ -143,6 +145,7 @@ def hdf5_test_data(number_of_processes: int) -> Generator[Hdf5TestData, None, No
             mcts = MCTSConfiguration(
                 number_of_simulations = 1,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 5,
@@ -219,6 +222,7 @@ performance_test_data: tuple[PerformanceTestData, ...] = (
             mcts = MCTSConfiguration(
                 number_of_simulations = 125,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 10000,
@@ -234,6 +238,7 @@ performance_test_data: tuple[PerformanceTestData, ...] = (
             mcts = MCTSConfiguration(
                 number_of_simulations = 125,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 10000,
@@ -249,6 +254,7 @@ performance_test_data: tuple[PerformanceTestData, ...] = (
             mcts = MCTSConfiguration(
                 number_of_simulations = 1,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 10000,
@@ -264,6 +270,7 @@ performance_test_data: tuple[PerformanceTestData, ...] = (
             mcts = MCTSConfiguration(
                 number_of_simulations = 1,
                 pucb_constant = 1.0,
+                pucb_increase = 0.0,
                 discount_factor = 1.0
             ),
             max_buffer_length = 10000,

@@ -60,6 +60,7 @@ class PUCBPolicy:
     def __init__(
         self,
         exploration_weight: float,
+        exploration_increase: float,
         oracle: Oracle,
         dirichlet_noise: DirichletNoise = DirichletNoise()
     ) -> None:
@@ -69,6 +70,7 @@ class PUCBPolicy:
         self.action_node: ActionNode | None = None
         self.root_priors: np.ndarray | None = None
         self.exploration_weight = exploration_weight
+        self.exploration_increase = exploration_increase
         self.oracle = oracle
         self.dirichlet_noise = dirichlet_noise
 
@@ -114,8 +116,14 @@ class PUCBPolicy:
     def _compute_pucb(self, action_node: ActionNode, prior: float) -> float:
         payoff = 0.0 if action_node.visits == 0 else action_node.payoff / action_node.visits
         return payoff + (
-            self.exploration_weight * prior *
+            self._get_pucb_exploration_weight() * prior *
             (math.sqrt(self.state_node.visits + 1) / (action_node.visits + 1))
+        )
+
+    def _get_pucb_exploration_weight(self) -> float:
+        return (
+            self.exploration_weight +
+            math.log(self.exploration_increase * (self.state_node.visits + 1) + 1.0)
         )
 
     def _get_priors(self, state_node: StateNode, observation: MCTSObservation) -> np.ndarray:
@@ -150,6 +158,7 @@ class PUCBPolicy:
 class MCTSConfiguration:
     number_of_simulations: int = 25
     pucb_constant: float = 1.0
+    pucb_increase: float = 0.0
     discount_factor: float = 1.0
     temperature: float = 1.0
     dirichlet_alpha: float = 0.0
@@ -167,6 +176,7 @@ class MCTSPolicy(Generic[Player]):
         self.game = game
         self.pucb_policy = PUCBPolicy(
             mcts.pucb_constant,
+            mcts.pucb_increase,
             oracle,
             dirichlet_noise = DirichletNoise(
                 alpha = mcts.dirichlet_alpha,

@@ -27,6 +27,7 @@ def configuration() -> GameRunnerConfiguration:
                     mcts:
                         number_of_simulations: 1
                         pucb_constant: 1.0
+                        pucb_increase: 0.0
                         discount_factor: 1.0
                         temperature: 1.0
                     oracle:
@@ -43,6 +44,7 @@ def configuration() -> GameRunnerConfiguration:
                     mcts:
                         number_of_simulations: 1
                         pucb_constant: 1.0
+                        pucb_increase: 0.0
                         discount_factor: 1.0
                     oracle: conv_9
             oracles:

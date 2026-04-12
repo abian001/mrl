@@ -61,6 +61,7 @@ def context(
             mcts:
                 number_of_simulations: {number_of_simulations}
                 pucb_constant: 1.0
+                pucb_increase: 0.0
                 discount_factor: 1.0
             max_buffer_length: 1000
             number_of_episodes: 2
