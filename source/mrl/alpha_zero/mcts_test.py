@@ -223,6 +223,71 @@ def test_mcts_applies_dirichlet_noise_at_root(
     assert probabilities[2:].sum() == pytest.approx(0.0)
 
 
+class CountingOracle(Oracle):
+
+    def __init__(self) -> None:
+        self.call_counts: dict[int, int] = {}
+
+    def get_probabilities(
+        self,
+        observation: MCTSObservation,
+        legal_mask: LegalMask
+    ) -> Probabilities:
+        self.call_counts[len(observation.action_space)] = (
+            self.call_counts.get(len(observation.action_space), 0) + 1
+        )
+        probabilities = np.zeros(len(legal_mask), dtype = float)
+        legal_actions = tuple(i for (i, legal) in enumerate(legal_mask) if legal)
+        probabilities[legal_actions[0]] = 1.0
+        return probabilities
+
+    def get_value(self, observation: MCTSObservation) -> float:
+        return 0.0
+
+
+@pytest.mark.quick
+def test_mcts_caches_root_priors_between_simulations(tic_tac_toe: tuple[MCTSGame, Oracle]):
+    game, _ = tic_tac_toe
+    oracle = CountingOracle()
+    policy = MCTSPolicy(
+        game = game,
+        oracle = oracle,
+        mcts = MCTSConfiguration(
+            number_of_simulations = 2,
+            pucb_constant = 1.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    policy(MCTSObservation(state, perspective), perspective.get_action_space(state))
+
+    assert oracle.call_counts[9] == 1
+
+
+@pytest.mark.quick
+def test_mcts_caches_child_priors_when_revisiting_same_node(
+    tic_tac_toe: tuple[MCTSGame, Oracle]
+):
+    game, _ = tic_tac_toe
+    oracle = CountingOracle()
+    policy = MCTSPolicy(
+        game = game,
+        oracle = oracle,
+        mcts = MCTSConfiguration(
+            number_of_simulations = 3,
+            pucb_constant = 1.0
+        )
+    )
+    state = game.make_initial_state()
+    perspective = Perspective(Player.O)
+
+    policy(MCTSObservation(state, perspective), perspective.get_action_space(state))
+
+    assert oracle.call_counts[9] == 1
+    assert oracle.call_counts[8] == 1
+
+
 @pytest.mark.quick
 def test_mcts_returns_one_hot_probabilities_for_zero_temperature(
     tic_tac_toe: tuple[MCTSGame, Oracle]

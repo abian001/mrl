@@ -38,6 +38,7 @@ class MCTSGame(
 @dataclass
 class StateNode:
     visits: int = 0
+    priors: np.ndarray | None = None
     actions: Dict[Action, 'ActionNode'] = field(default_factory = dict)
 
 
@@ -75,7 +76,8 @@ class PUCBPolicy:
         self.root = root
         self.state_node = root
         self.action_node = None
-        self.root_priors = self._get_root_priors(observation)
+        root_priors = self._get_priors(root, observation)
+        self.root_priors = self._get_root_priors(root_priors, observation)
 
     def __call__(
         self,
@@ -100,11 +102,10 @@ class PUCBPolicy:
         return action, self.state_node, self.action_node
 
     def _pucb_choice(self, observation: MCTSObservation) -> Action:
-        priors = (
-            self.root_priors
-            if self.state_node is self.root and self.root_priors is not None
-            else self.oracle.get_probabilities(observation, observation.legal_mask)
-        )
+        if self.state_node is self.root and self.root_priors is not None:
+            priors = self.root_priors
+        else:
+            priors = self._get_priors(self.state_node, observation)
         return max(
             self.state_node.actions.items(),
             key = lambda x: self._compute_pucb(x[1], priors[x[0]])
@@ -117,14 +118,23 @@ class PUCBPolicy:
             (math.sqrt(self.state_node.visits + 1) / (action_node.visits + 1))
         )
 
-    def _get_root_priors(self, observation: MCTSObservation) -> np.ndarray | None:
+    def _get_priors(self, state_node: StateNode, observation: MCTSObservation) -> np.ndarray:
+        if state_node.priors is None:
+            state_node.priors = np.array(
+                self.oracle.get_probabilities(observation, observation.legal_mask),
+                dtype = float
+            )
+        return state_node.priors
+
+    def _get_root_priors(
+        self,
+        priors: np.ndarray,
+        observation: MCTSObservation
+    ) -> np.ndarray | None:
         if self.dirichlet_noise.alpha <= 0.0 or self.dirichlet_noise.weight <= 0.0:
             return None
 
-        priors = np.array(
-            self.oracle.get_probabilities(observation, observation.legal_mask),
-            dtype = float
-        )
+        priors = priors.copy()
         legal_actions = np.flatnonzero(observation.legal_mask)
         dirichlet_noise = np.random.dirichlet(
             np.full(len(legal_actions), self.dirichlet_noise.alpha, dtype = float)
