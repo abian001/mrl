@@ -5,15 +5,18 @@ from collections.abc import Generator
 from typing import Literal
 import time
 import h5py
+import numpy as np
 import pytest
 from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
 from mrl.alpha_zero.mcts import MCTSGame, MCTSConfiguration
 from mrl.alpha_zero.mcts_observation import MCTSObservation
 from mrl.alpha_zero.experience_collector import (
     CollectorConfiguration,
+    SingleHDF5Collector,
     make_buffer_collector,
     make_hdf5_collector,
 )
+from mrl.alpha_zero.model_trainer import HDF5Dataset
 from mrl.alpha_zero.mcts_test import TestOracle
 from mrl.xiangqi.mcts_game import MCTSXiangqi
 from mrl.tic_tac_toe.mcts_game import MCTSTicTacToe
@@ -125,7 +128,7 @@ class Hdf5TestData:
         return f'{self.file_prefix}_0.h5'
 
     @property
-    def expected_shapes(self) -> tuple[tuple[int, int], ...]:
+    def expected_shapes(self) -> tuple[tuple[int, ...], ...]:
         return (
             (self.expected_records, self.expected_observation_size),
             (self.expected_records, self.expected_probability_size),
@@ -171,7 +174,7 @@ def test_hd5f_collector(hdf5_test_data: Hdf5TestData):
     _assert_hdf5_has_shapes(hdf5_test_data.data_file, hdf5_test_data.expected_shapes)
 
 
-def _assert_hdf5_has_shapes(file_path: str, expected_shapes: tuple[tuple[int, int], ...]):
+def _assert_hdf5_has_shapes(file_path: str, expected_shapes: tuple[tuple[int, ...], ...]):
     assert os.path.exists(file_path)
     with h5py.File(file_path, 'r') as hdf5_file:
         observations = hdf5_file['observations']
@@ -186,6 +189,47 @@ def _assert_hdf5_has_shapes(file_path: str, expected_shapes: tuple[tuple[int, in
             payoffs.shape  # pylint: disable=no-member
         )
         assert shapes == expected_shapes
+
+
+@pytest.mark.quick
+def test_hdf5_collector_preserves_higher_rank_observation_shapes(tmp_path: Path):
+    configuration = CollectorConfiguration(
+        mcts = MCTSConfiguration(
+            number_of_simulations = 1,
+            pucb_constant = 1.0,
+            pucb_increase = 0.0,
+            discount_factor = 1.0
+        ),
+        max_buffer_length = 4,
+        number_of_episodes = 1,
+        temperature_schedule = ((0, 1.0),),
+        number_of_processes = 1
+    )
+    game, oracle = tic_tac_toe()
+    collector = SingleHDF5Collector(game, oracle, configuration)
+    collector.file_path = str(tmp_path / "experience_collector_ranked.h5")
+    observation_1 = np.arange(4, dtype = np.float32).reshape((2, 1, 2))
+    observation_2 = np.arange(4, 8, dtype = np.float32).reshape((2, 1, 2))
+    probabilities_1 = np.array((0.2, 0.3, 0.5), dtype = np.float32)
+    probabilities_2 = np.array((0.1, 0.7, 0.2), dtype = np.float32)
+    collector.buffer = [
+        (observation_1, probabilities_1, 0.25),
+        (observation_2, probabilities_2, 0.75)
+    ]
+
+    collector._save_buffer_to_hdf5()
+
+    _assert_hdf5_has_shapes(
+        collector.file_path,
+        ((2, 2, 1, 2), (2, 3), (2, 1))
+    )
+    dataset = HDF5Dataset(collector.file_path)
+    loaded_observation, loaded_probabilities, loaded_payoff = dataset[1]
+
+    assert tuple(loaded_observation.shape) == (2, 1, 2)
+    assert loaded_observation.numpy() == pytest.approx(observation_2)
+    assert loaded_probabilities.numpy() == pytest.approx(probabilities_2)
+    assert loaded_payoff.item() == pytest.approx(0.75)
 
 
 @dataclass
