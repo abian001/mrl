@@ -217,7 +217,7 @@ def test_hdf5_collector_preserves_higher_rank_observation_shapes(tmp_path: Path)
         (observation_2, probabilities_2, 0.75)
     ]
 
-    collector._save_buffer_to_hdf5()
+    collector.save_buffer_to_hdf5()
 
     _assert_hdf5_has_shapes(
         collector.file_path,

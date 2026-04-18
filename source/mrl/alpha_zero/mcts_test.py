@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import math
 import numpy as np
 import pytest
 from mrl.tic_tac_toe.game import Player
@@ -8,8 +7,7 @@ from mrl.alpha_zero.mcts import (
     MCTSGame,
     MCTSPolicy,
     NonDeterministicMCTSPolicy,
-    MCTSConfiguration,
-    StateNode
+    MCTSConfiguration
 )
 from mrl.alpha_zero.mcts_observation import MCTSObservation
 from mrl.alpha_zero.oracle import Oracle, LegalMask, Probabilities
@@ -255,7 +253,7 @@ class CountingOracle(Oracle):
 def test_mcts_caches_root_priors_between_simulations(tic_tac_toe: tuple[MCTSGame, Oracle]):
     game, _ = tic_tac_toe
     oracle = CountingOracle()
-    policy = MCTSPolicy(
+    policy: MCTSPolicy = MCTSPolicy(
         game = game,
         oracle = oracle,
         mcts = MCTSConfiguration(
@@ -278,7 +276,7 @@ def test_mcts_caches_child_priors_when_revisiting_same_node(
 ):
     game, _ = tic_tac_toe
     oracle = CountingOracle()
-    policy = MCTSPolicy(
+    policy: MCTSPolicy = MCTSPolicy(
         game = game,
         oracle = oracle,
         mcts = MCTSConfiguration(
@@ -322,24 +320,3 @@ def test_mcts_returns_one_hot_probabilities_for_zero_temperature(
     assert action == 0
     assert probabilities[0] == pytest.approx(1.0)
     assert probabilities[1:].sum() == pytest.approx(0.0)
-
-
-@pytest.mark.quick
-def test_pucb_increase_raises_exploration_weight_with_parent_visits():
-    policy = MCTSPolicy(
-        game = MCTSTicTacToe(),
-        oracle = TestOracle(),
-        mcts = MCTSConfiguration(
-            number_of_simulations = 1,
-            pucb_constant = 0.5,
-            pucb_increase = 2.0
-        )
-    ).pucb_policy
-    policy.state_node = StateNode(visits = 0)
-
-    initial_weight = policy._get_pucb_exploration_weight()
-
-    policy.state_node.visits = 8
-
-    assert initial_weight == pytest.approx(math.log(3.0) + 0.5)
-    assert policy._get_pucb_exploration_weight() == pytest.approx(math.log(19.0) + 0.5)

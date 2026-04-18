@@ -55,6 +55,19 @@ class DirichletNoise:
     weight: float = 0.0
 
 
+class Exploration:
+
+    def __init__(self, base_weight: float, increase_parameter: float):
+        self.base_weight = base_weight
+        self.increase_parameter = increase_parameter
+
+    def get_weight(self, visits: int) -> float:
+        return (
+            self.base_weight +
+            math.log(self.increase_parameter * (visits + 1) + 1.0)
+        )
+
+
 class PUCBPolicy:
 
     def __init__(
@@ -69,8 +82,7 @@ class PUCBPolicy:
         self.state_node: StateNode = root
         self.action_node: ActionNode | None = None
         self.root_priors: np.ndarray | None = None
-        self.exploration_weight = exploration_weight
-        self.exploration_increase = exploration_increase
+        self.exploration = Exploration(exploration_weight, exploration_increase)
         self.oracle = oracle
         self.dirichlet_noise = dirichlet_noise
 
@@ -116,14 +128,8 @@ class PUCBPolicy:
     def _compute_pucb(self, action_node: ActionNode, prior: float) -> float:
         payoff = 0.0 if action_node.visits == 0 else action_node.payoff / action_node.visits
         return payoff + (
-            self._get_pucb_exploration_weight() * prior *
+            self.exploration.get_weight(self.state_node.visits) * prior *
             (math.sqrt(self.state_node.visits + 1) / (action_node.visits + 1))
-        )
-
-    def _get_pucb_exploration_weight(self) -> float:
-        return (
-            self.exploration_weight +
-            math.log(self.exploration_increase * (self.state_node.visits + 1) + 1.0)
         )
 
     def _get_priors(self, state_node: StateNode, observation: MCTSObservation) -> np.ndarray:

@@ -4,7 +4,6 @@ from collections import deque
 import multiprocessing
 import os
 import secrets
-import time
 import pickle
 import numpy as np
 import h5py
@@ -266,7 +265,7 @@ class SingleHDF5Collector(SingleProcessCollector):
             probabilities[current_size:new_size, ...] = new_probabilities
             payoffs[current_size:new_size, ...] = new_payoffs
 
-    def _save_buffer_to_hdf5(self) -> None:
+    def save_buffer_to_hdf5(self) -> None:
         observations = np.stack(tuple(x[0] for x in self.buffer))
         probabilities = np.stack(tuple(x[1] for x in self.buffer))
         payoffs = np.stack(tuple(np.array([x[2]], dtype = float) for x in self.buffer))
@@ -283,7 +282,7 @@ class SingleHDF5Collector(SingleProcessCollector):
             len(self.buffer) > self.config.max_buffer_length or
             self.episode_count >= self.config.number_of_episodes
         ):
-            self._save_buffer_to_hdf5()
+            self.save_buffer_to_hdf5()
 
 
 class SharedBuffer:
