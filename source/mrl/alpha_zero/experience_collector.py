@@ -3,6 +3,7 @@ from abc import abstractmethod
 from collections import deque
 import multiprocessing
 import os
+import secrets
 import time
 import pickle
 import numpy as np
@@ -205,6 +206,7 @@ class SingleHDF5Collector(SingleProcessCollector):
         self.buffer = []
         self.file_path: str | None = None
         self.episode_count = 0
+        np.random.seed(secrets.randbits(32))
 
     def collect(self, file_path: str) -> None:
         self.file_path = file_path
@@ -358,7 +360,7 @@ class SharedProcessCollector(ExperienceCollector, Generic[Player]):
         return self.buffer.buffer, self.buffer.is_filled()
 
     def _process_play(self, process_index: int) -> None:
-        np.random.seed(int(time.time()))
+        np.random.seed(secrets.randbits(32))
         for _ in range(self.episodes_per_process):
             buffers: RewardBuffers = {p: [] for p in self.perspectives}
             last_state = self._play_one_episode(buffers)
