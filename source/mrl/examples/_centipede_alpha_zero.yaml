@@ -30,6 +30,8 @@ trainer:
     early_stop_loss: 1e-3
     learning_rate: 1e-3
     loading_workers: 1
+    metrics_collector:
+        name: NullMetricsCollector
 report_generator:
     number_of_tests: 100
     buckets:

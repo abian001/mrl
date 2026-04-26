@@ -26,6 +26,7 @@ from mrl.configuration.game_runner_factory import GameRunnerFactory
 from mrl.configuration.player_utils import validate_player
 from mrl.configuration.runner_factories import (
     make_gui,
+    make_metrics_collector,
     make_mcts_game,
     make_policy,
     make_stdin_policy,
@@ -79,11 +80,16 @@ class AlphaZeroRunnerFactory:
                 configuration.evaluation.uncertainty_penalty_coefficient,
             discount_factor = configuration.evaluation.discount_factor,
         )
+        trainer = configuration.trainer.model_copy(deep = True)
+        trainer.set_metrics_collector(make_metrics_collector(
+            configuration.trainer.metrics_collector_configuration,
+            workspace_path = configuration.workspace_path,
+        ))
         base_arguments = {
             'game': game,
             'oracle_configuration': configuration.oracle_configuration,
             'oracle': oracle,
-            'trainer': configuration.trainer,
+            'trainer': trainer,
             'collector': configuration.collector,
             'number_of_epochs': configuration.number_of_epochs,
             'report_generator': self._make_report_generator_context(

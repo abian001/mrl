@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 from mrl.alpha_zero.mcts import MCTSGame
+from mrl.alpha_zero.model_trainer import MetricsCollector, NullMetricsCollector
 from mrl.alpha_zero.oracle import Oracle, TrainableOracle
 from mrl.configuration import factory as _factory
 from mrl.configuration.factory import ObjectConfiguration, make_object
@@ -70,6 +71,25 @@ def make_policy(
             "Policy classes should derive from class Policy."
         )
     return policy
+
+
+def make_metrics_collector(
+    metrics_collector_configuration: ObjectConfiguration | None,
+    *,
+    workspace_path: Path,
+) -> MetricsCollector:
+    if metrics_collector_configuration is None:
+        return NullMetricsCollector()
+    metrics_collector = make_object(
+        metrics_collector_configuration,
+        extra_arguments = {'workspace_path': workspace_path},
+    )
+    if not isinstance(metrics_collector, MetricsCollector):
+        raise TypeError(
+            f"Invalid metrics collector class {type(metrics_collector)}. "
+            "Metrics collectors should derive from class MetricsCollector."
+        )
+    return metrics_collector
 
 
 def make_stdin_policy(

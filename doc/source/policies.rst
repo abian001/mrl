@@ -195,9 +195,9 @@ The parameters have the following meaning:
    encourage exploration of less-visited actions.
 
 -  ``pucb_increase``: additional exploration growth factor. The
-   effective exploration weight is
-   ``pucb_constant + log(pucb_increase * (parent_visits + 1) + 1)``.
-   A value of ``0.0`` keeps the standard fixed constant behavior.
+   effective exploration weight is ``pucb_constant + log(pucb_increase *
+   (parent_visits + 1) + 1)``. A value of ``0.0`` keeps the standard
+   fixed constant behavior.
 
 -  ``discount_factor``: discount applied to rewards that occur in the
    game.
