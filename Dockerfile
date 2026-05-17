@@ -1,30 +1,24 @@
-FROM continuumio/miniconda3:v25.11.1-1 AS mrl_base_image
+FROM mambaorg/micromamba:2.3.2 AS mrl_base_image
 WORKDIR /mrl
-COPY pyproject.toml .
-COPY source/ source/
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment_prod.yaml .
+RUN micromamba install -y -n base -f environment_prod.yaml && \
+    micromamba clean --all --yes
+SHELL ["micromamba", "run", "-n", "base", "/bin/bash", "-c"]
+
+
+FROM mrl_base_image AS mrl_production_image
+COPY --chown=$MAMBA_USER:$MAMBA_USER pyproject.toml .
+COPY --chown=$MAMBA_USER:$MAMBA_USER source/ source/
+RUN pip install --no-cache-dir . && \
+    rm -rf *
 ENTRYPOINT ["/bin/bash"]
-RUN conda install pytorch -y -c pytorch && \
-    conda install -y pyyaml h5py && \
-    python3 -m pip install trueskill
 
 
-FROM mrl_base_image as mrl_production_image
-RUN python3 -m pip install . && \
-    rm -rf *
-
-
-FROM mrl_base_image as mrl_development_image
-RUN conda install -y \
-        pylint \
-        mypy \
-        types-PyYAML \
-        pytest \
-        pytest-asyncio \
-        sphinx \
-        sphinx_rtd_theme && \
-    apt-get update && \
-    apt-get install -y make graphviz && \
-    rm -rf /var/lib/apt/lists/* && \
-    python3 -m pip install pyright rstfmt gprof2dot && \
-    python3 -m pip install -e .[dev] && \
-    rm -rf *
+FROM mrl_base_image AS mrl_development_image
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment_dev.yaml .
+RUN micromamba install -y -n base -f environment_dev.yaml && \
+    micromamba clean --all --yes
+COPY --chown=$MAMBA_USER:$MAMBA_USER pyproject.toml .
+COPY --chown=$MAMBA_USER:$MAMBA_USER source/ source/
+RUN pip install --no-cache-dir -e .[dev]
+ENTRYPOINT ["/bin/bash"]

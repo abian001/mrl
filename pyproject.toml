@@ -1,8 +1,15 @@
 [project]
-requires-python = ">=3.11.5"
+requires-python = ">=3.13.13,<4"
 version = "0.0.0"
 name = "mrl"
-dependencies = []
+dependencies = [
+    "numpy==2.4.5",
+    "torch==2.10.0",
+    "PyYAML==6.0.3",
+    "h5py==3.16.0",
+    "pydantic==2.13.4",
+    "trueskill==0.4.5",
+]
 
 
 [project.scripts]

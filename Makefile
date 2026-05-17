@@ -49,3 +49,8 @@ run_dev_container:
 
 run_prod_container:
 	docker compose run --rm mrl_prod
+
+VENV_NAME = base
+
+show_dependencies:
+	micromamba env export -n $(VENV_NAME) > base_environment.yaml
