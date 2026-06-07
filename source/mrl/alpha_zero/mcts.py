@@ -38,6 +38,7 @@ class MCTSGame(
 @dataclass
 class StateNode:
     visits: int = 0
+    priors: np.ndarray | None = None
     actions: Dict[Action, 'ActionNode'] = field(default_factory = dict)
 
 
@@ -54,11 +55,25 @@ class DirichletNoise:
     weight: float = 0.0
 
 
+class Exploration:
+
+    def __init__(self, base_weight: float, increase_parameter: float):
+        self.base_weight = base_weight
+        self.increase_parameter = increase_parameter
+
+    def get_weight(self, visits: int) -> float:
+        return (
+            self.base_weight +
+            math.log(self.increase_parameter * (visits + 1) + 1.0)
+        )
+
+
 class PUCBPolicy:
 
     def __init__(
         self,
         exploration_weight: float,
+        exploration_increase: float,
         oracle: Oracle,
         dirichlet_noise: DirichletNoise = DirichletNoise()
     ) -> None:
@@ -67,7 +82,7 @@ class PUCBPolicy:
         self.state_node: StateNode = root
         self.action_node: ActionNode | None = None
         self.root_priors: np.ndarray | None = None
-        self.exploration_weight = exploration_weight
+        self.exploration = Exploration(exploration_weight, exploration_increase)
         self.oracle = oracle
         self.dirichlet_noise = dirichlet_noise
 
@@ -75,7 +90,8 @@ class PUCBPolicy:
         self.root = root
         self.state_node = root
         self.action_node = None
-        self.root_priors = self._get_root_priors(observation)
+        root_priors = self._get_priors(root, observation)
+        self.root_priors = self._get_root_priors(root_priors, observation)
 
     def __call__(
         self,
@@ -100,11 +116,10 @@ class PUCBPolicy:
         return action, self.state_node, self.action_node
 
     def _pucb_choice(self, observation: MCTSObservation) -> Action:
-        priors = (
-            self.root_priors
-            if self.state_node is self.root and self.root_priors is not None
-            else self.oracle.get_probabilities(observation, observation.legal_mask)
-        )
+        if self.state_node is self.root and self.root_priors is not None:
+            priors = self.root_priors
+        else:
+            priors = self._get_priors(self.state_node, observation)
         return max(
             self.state_node.actions.items(),
             key = lambda x: self._compute_pucb(x[1], priors[x[0]])
@@ -113,18 +128,27 @@ class PUCBPolicy:
     def _compute_pucb(self, action_node: ActionNode, prior: float) -> float:
         payoff = 0.0 if action_node.visits == 0 else action_node.payoff / action_node.visits
         return payoff + (
-            self.exploration_weight * prior *
+            self.exploration.get_weight(self.state_node.visits) * prior *
             (math.sqrt(self.state_node.visits + 1) / (action_node.visits + 1))
         )
 
-    def _get_root_priors(self, observation: MCTSObservation) -> np.ndarray | None:
+    def _get_priors(self, state_node: StateNode, observation: MCTSObservation) -> np.ndarray:
+        if state_node.priors is None:
+            state_node.priors = np.array(
+                self.oracle.get_probabilities(observation, observation.legal_mask),
+                dtype = float
+            )
+        return state_node.priors
+
+    def _get_root_priors(
+        self,
+        priors: np.ndarray,
+        observation: MCTSObservation
+    ) -> np.ndarray | None:
         if self.dirichlet_noise.alpha <= 0.0 or self.dirichlet_noise.weight <= 0.0:
             return None
 
-        priors = np.array(
-            self.oracle.get_probabilities(observation, observation.legal_mask),
-            dtype = float
-        )
+        priors = priors.copy()
         legal_actions = np.flatnonzero(observation.legal_mask)
         dirichlet_noise = np.random.dirichlet(
             np.full(len(legal_actions), self.dirichlet_noise.alpha, dtype = float)
@@ -140,6 +164,7 @@ class PUCBPolicy:
 class MCTSConfiguration:
     number_of_simulations: int = 25
     pucb_constant: float = 1.0
+    pucb_increase: float = 0.0
     discount_factor: float = 1.0
     temperature: float = 1.0
     dirichlet_alpha: float = 0.0
@@ -157,6 +182,7 @@ class MCTSPolicy(Generic[Player]):
         self.game = game
         self.pucb_policy = PUCBPolicy(
             mcts.pucb_constant,
+            mcts.pucb_increase,
             oracle,
             dirichlet_noise = DirichletNoise(
                 alpha = mcts.dirichlet_alpha,

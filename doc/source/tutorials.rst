@@ -10,11 +10,11 @@ You need a Python environment with the following dependencies:
 
 .. code:: bash
 
-   - python 3.13.11
-   - pytorch 2.8.0
+   - python 3.13.13
+   - pytorch 2.10.0
    - pyyaml 6.0.3
-   - h5py 3.15.1
-   - pydantic 2.12.4
+   - h5py 3.16.0
+   - pydantic 2.13.4
    - trueskill 0.4.5
 
 You can use the Dockerfile to create a Docker image.
@@ -342,16 +342,16 @@ For example, you can modify the following parameters:
 After applying the changes described above, the following results were
 obtained in my tests:
 
--  InMemory strategy: After 16 minutes of training, the model achieved
+-  InMemory strategy: After 18 minutes of training, the model achieved
 
-   -  an average payoff of 0.92, with a 87% win rate and a 5% loss rate
+   -  an average payoff of 0.93, with a 88% win rate and a 3% loss rate
       against the random policy;
-   -  an average payoff of 0.36, with a 72% draw rate and a 28% loss
+   -  an average payoff of 0.39, with a 79% draw rate and a 21% loss
       rate against the optimal AlphaBetaPolicy.
 
--  HDF5 strategy: After 8 minutes of training, the model achieved
+-  HDF5 strategy: After 17 minutes of training, the model achieved
 
-   -  an average payoff of 0.85, with a 81% win rate and a 11% loss rate
+   -  an average payoff of 0.84, with a 80% win rate and a 11% loss rate
       against the random policy;
-   -  an average payoff of 0.31, with a 62% draw rate and a 38% loss
+   -  an average payoff of 0.25, with a 51% draw rate and a 49% loss
       rate against the optimal AlphaBetaPolicy.

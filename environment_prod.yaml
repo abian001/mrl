@@ -1,0 +1,18 @@
+name: mrl
+
+channels:
+  - pytorch
+  - conda-forge
+
+dependencies:
+  - python=3.13.13
+  - pytorch=2.10.0
+  - numpy=2.4.5
+  - pyyaml=6.0.3
+  - h5py=3.16.0
+  - pydantic=2.13.4
+  - pip=26.1.1
+  - xorg-libx11=1.8.13
+
+  - pip:
+      - trueskill==0.4.5

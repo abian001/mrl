@@ -54,6 +54,7 @@ individual sections are described below.
        mcts:
            number_of_simulations: 1
            pucb_constant: 1.0
+           pucb_increase: 0.0
            discount_factor: 1.0
            dirichlet_alpha: 0.3
            dirichlet_weight: 0.25
@@ -67,6 +68,9 @@ individual sections are described below.
        early_stop_loss: 1e-3
        learning_rate: 1e-3
        loading_workers: 1
+       metrics_collector:
+           name: YamlMetricsCollector
+           file_path: training_metrics.yaml
    report_generator:
        number_of_tests: 100
        buckets:
@@ -179,6 +183,7 @@ selection.
        mcts:
            number_of_simulations: 1
            pucb_constant: 1.0
+           pucb_increase: 0.0
            discount_factor: 1.0
            dirichlet_alpha: 0.3
            dirichlet_weight: 0.25
@@ -228,18 +233,70 @@ details about the ``temperature`` parameter.
        early_stop_loss: 1e-3
        learning_rate: 1e-3
        loading_workers: 1
+       metrics_collector:
+           name: YamlMetricsCollector
+           file_path: training_metrics.yaml
+           sample_batch_period: null
 
 This section defines the neural network training parameters.
 
 -  ``batch_size``: number of experience samples processed in each
    training batch.
+
 -  ``max_training_epochs``: maximum number of passes over the training
    data per training epoch.
+
 -  ``early_stop_loss``: threshold used to stop training early if the
    loss falls below this value.
+
 -  ``learning_rate``: learning rate used by the optimizer.
+
 -  ``loading_workers``: number of worker threads used to prepare
    training data.
+
+-  ``metrics_collector``: optional collector used to persist training
+   metrics for each training batch.
+
+-  ``file_path``: Used by the ``YAMLMetricsCollector``. Specifies the
+   path to the file that stores the collected metrics. If a relative
+   path is provided, it is interpreted relative to ``workspace_path``.
+
+-  ``sample_batch_period``: Used by the ``YAMLMetricsCollector``. This
+   parameter defines how many batches are processed between metric
+   samples. If set to None, no intermediate batch-level samples are
+   taken, and only the final metric at the end of each training epoch is
+   recorded.
+
+The ``metrics_collector`` uses the same object-configuration format as
+other runtime collaborators in the runner.
+
+Custom metrics collectors are also supported. A custom collector can be
+provided through ``trainer.metrics_collector`` like any other configured
+runtime object. It should implement the ``MetricsCollector`` protocol,
+meaning it must provide a ``collect(metrics, is_last_batch_in_epoch)``
+method compatible with the ``TrainingMetrics`` payload emitted by the
+trainer.
+
+The built-in collector ``YamlMetricsCollector`` appends one YAML record
+per training batch to the configured file. Relative paths are resolved
+against ``workspace_path``.
+
+The emitted records include:
+
+-  ``alpha_zero_epoch``: the index of the outer AlphaZero training cycle
+   for that training run;
+-  ``training_epoch``: the index of the neural-network optimization pass
+   within that AlphaZero cycle;
+-  ``batch``: the batch index within that training epoch;
+-  ``batch_size``: the number of samples in that batch;
+-  ``policy_loss``: instantaneous policy loss for that batch;
+-  ``value_loss``: instantaneous value loss for that batch;
+-  ``total_loss``: sum of policy loss and value loss for that batch;
+-  ``policy_entropy``: entropy of the predicted policy distribution for
+   that batch.
+
+If ``metrics_collector`` is omitted or configured as
+``NullMetricsCollector``, no training metrics are persisted.
 
 ******************
  Report generator
@@ -354,6 +411,9 @@ The workspace also stores evaluation artifacts:
 -  saved model checkpoints at ``<oracle_file_path>_<numeric_id>``;
 -  the persisted evaluation ratings for those checkpoints at
    ``<oracle_file_path>_scores.yaml``.
+
+If a training metrics collector is configured with a relative
+``file_path``, its output is also stored under ``workspace_path``.
 
 .. _alpha_zero_evaluation:
 

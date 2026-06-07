@@ -3,7 +3,7 @@ from abc import abstractmethod
 from collections import deque
 import multiprocessing
 import os
-import time
+import secrets
 import pickle
 import numpy as np
 import h5py
@@ -205,6 +205,7 @@ class SingleHDF5Collector(SingleProcessCollector):
         self.buffer = []
         self.file_path: str | None = None
         self.episode_count = 0
+        np.random.seed(secrets.randbits(32))
 
     def collect(self, file_path: str) -> None:
         self.file_path = file_path
@@ -215,17 +216,17 @@ class SingleHDF5Collector(SingleProcessCollector):
         with h5py.File(self.file_path, 'w') as hdf5_file:
             hdf5_file.create_dataset(
                 'observations',
-                maxshape = (None, observations.shape[1]),
+                maxshape = (None,) + observations.shape[1:],
                 data = observations
             )
             hdf5_file.create_dataset(
                 'probabilities',
-                maxshape = (None, probabilities.shape[1]),
+                maxshape = (None,) + probabilities.shape[1:],
                 data = probabilities
             )
             hdf5_file.create_dataset(
                 'payoffs',
-                maxshape = (None, payoffs.shape[1]),
+                maxshape = (None,) + payoffs.shape[1:],
                 data = payoffs
             )
 
@@ -239,17 +240,32 @@ class SingleHDF5Collector(SingleProcessCollector):
             observations = get_hdf5_dataset(hdf5_file, 'observations', self.file_path)
             probabilities = get_hdf5_dataset(hdf5_file, 'probabilities', self.file_path)
             payoffs = get_hdf5_dataset(hdf5_file, 'payoffs', self.file_path)
+            if observations.shape[1:] != new_observations.shape[1:]:
+                raise ValueError(
+                    "Observation shape mismatch while appending to HDF5 collector: "
+                    f"expected {observations.shape[1:]}, got {new_observations.shape[1:]}."
+                )
+            if probabilities.shape[1:] != new_probabilities.shape[1:]:
+                raise ValueError(
+                    "Probability shape mismatch while appending to HDF5 collector: "
+                    f"expected {probabilities.shape[1:]}, got {new_probabilities.shape[1:]}."
+                )
+            if payoffs.shape[1:] != new_payoffs.shape[1:]:
+                raise ValueError(
+                    "Payoff shape mismatch while appending to HDF5 collector: "
+                    f"expected {payoffs.shape[1:]}, got {new_payoffs.shape[1:]}."
+                )
 
             current_size = observations.shape[0]
             new_size = current_size + new_observations.shape[0]
-            observations.resize((new_size, observations.shape[1]))
-            probabilities.resize((new_size, probabilities.shape[1]))
-            payoffs.resize((new_size, payoffs.shape[1]))
-            observations[current_size:new_size, :] = new_observations
-            probabilities[current_size:new_size, :] = new_probabilities
-            payoffs[current_size:new_size, :] = new_payoffs
+            observations.resize((new_size,) + observations.shape[1:])
+            probabilities.resize((new_size,) + probabilities.shape[1:])
+            payoffs.resize((new_size,) + payoffs.shape[1:])
+            observations[current_size:new_size, ...] = new_observations
+            probabilities[current_size:new_size, ...] = new_probabilities
+            payoffs[current_size:new_size, ...] = new_payoffs
 
-    def _save_buffer_to_hdf5(self) -> None:
+    def save_buffer_to_hdf5(self) -> None:
         observations = np.stack(tuple(x[0] for x in self.buffer))
         probabilities = np.stack(tuple(x[1] for x in self.buffer))
         payoffs = np.stack(tuple(np.array([x[2]], dtype = float) for x in self.buffer))
@@ -266,7 +282,7 @@ class SingleHDF5Collector(SingleProcessCollector):
             len(self.buffer) > self.config.max_buffer_length or
             self.episode_count >= self.config.number_of_episodes
         ):
-            self._save_buffer_to_hdf5()
+            self.save_buffer_to_hdf5()
 
 
 class SharedBuffer:
@@ -343,7 +359,7 @@ class SharedProcessCollector(ExperienceCollector, Generic[Player]):
         return self.buffer.buffer, self.buffer.is_filled()
 
     def _process_play(self, process_index: int) -> None:
-        np.random.seed(int(time.time()))
+        np.random.seed(secrets.randbits(32))
         for _ in range(self.episodes_per_process):
             buffers: RewardBuffers = {p: [] for p in self.perspectives}
             last_state = self._play_one_episode(buffers)

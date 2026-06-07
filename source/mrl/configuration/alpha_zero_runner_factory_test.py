@@ -3,6 +3,7 @@ from typing import Generator
 import os
 import yaml
 import pytest
+from mrl.alpha_zero.model_trainer import YamlMetricsCollector, NullMetricsCollector
 from mrl.configuration.factory import ObjectConfiguration
 from mrl.configuration.alpha_zero_runner_configuration import AlphaZeroRunnerConfiguration
 from mrl.configuration.alpha_zero_runner_factory import AlphaZeroRunnerFactory
@@ -79,6 +80,7 @@ def configuration_data(
             mcts:
                 number_of_simulations: 25
                 pucb_constant: 1.0
+                pucb_increase: 0.0
                 discount_factor: 1.0
             max_buffer_length: 1000
             number_of_episodes: 1
@@ -88,9 +90,9 @@ def configuration_data(
             batch_size: 32
             max_training_epochs: 1
             early_stop_loss: 1e-3
-            loss_observer: null
             learning_rate: 1e-3
             loading_workers: 1
+            metrics_collector: null
         report_generator:
             number_of_tests: 10
             buckets:
@@ -110,6 +112,7 @@ def configuration_data(
                 mcts:
                     number_of_simulations: 25
                     pucb_constant: 1.0
+                    pucb_increase: 0.0
                     discount_factor: 1.0
         number_of_epochs: 10 
         evaluation:
@@ -174,6 +177,7 @@ def test_make_context_and_manual_play(
     assert context.collector.temperature_schedule == ((0, 1.0),)
     assert context.report_generator.observed_players == (Player.X,)
     assert context.oracle_file_path == Path("workspace/tic_tac_toe_model")
+    assert isinstance(context.trainer.metrics_collector, NullMetricsCollector)
     assert context.report_generator.buckets[0][0] == float("-inf")
     assert context.evaluation.true_skill.mu == 30.0
     assert context.evaluation.discount_factor == 0.9
@@ -205,6 +209,30 @@ def test_default_manual_play(
     assert isinstance(manual_player, Player)
     assert isinstance(autonomous_policy, DeterministicOraclePolicy)
     assert not os.path.exists(config_file_path)
+
+
+@pytest.mark.parametrize('memory_type', ['InMemory'])
+@pytest.mark.parametrize('config_file_path', ['test_config.yaml'])
+@pytest.mark.quick
+def test_make_context_builds_metrics_collector_under_workspace(
+    factory: AlphaZeroRunnerFactory,
+    configuration_data: dict,
+) -> None:
+    configuration_data = configuration_data.copy()
+    configuration_data['workspace_path'] = 'metrics_workspace'
+    configuration_data['trainer'] = configuration_data['trainer'].copy()
+    configuration_data['trainer']['metrics_collector'] = {
+        'name': 'YamlMetricsCollector',
+        'file_path': 'training_metrics.yaml',
+    }
+
+    configuration = AlphaZeroRunnerConfiguration.model_validate(configuration_data)
+    context = factory.make_context(configuration.alpha_zero)
+
+    assert isinstance(context.trainer.metrics_collector, YamlMetricsCollector)
+    assert context.trainer.metrics_collector.file_path == Path(
+        "metrics_workspace/training_metrics.yaml"
+    )
 
 
 @pytest.mark.parametrize('memory_type', ['InMemory'])

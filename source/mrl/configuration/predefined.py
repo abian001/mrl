@@ -23,6 +23,8 @@ predefined_modules = {
     'OpenSpielMLP': 'mrl.alpha_zero.models',
     'OpenSpielConv': 'mrl.alpha_zero.models',
     'OpenSpielResnet': 'mrl.alpha_zero.models',
+    'YamlMetricsCollector': 'mrl.alpha_zero.model_trainer',
+    'NullMetricsCollector': 'mrl.alpha_zero.model_trainer',
     'RandomRollout': 'mrl.alpha_zero.random_rollout',
     'DeterministicOraclePolicy': 'mrl.alpha_zero.oracle',
     'StochasticOraclePolicy': 'mrl.alpha_zero.oracle',

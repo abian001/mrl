@@ -25,6 +25,7 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
                 mcts:
                     number_of_simulations: 25
                     pucb_constant: 1.0
+                    pucb_increase: 0.0
                     discount_factor: 1.0
                 max_buffer_length: 1000
                 number_of_episodes: 1
@@ -34,9 +35,9 @@ def configuration(memory_type: str, config_file_path: str) -> dict:
                 batch_size: 32
                 max_training_epochs: 1
                 early_stop_loss: 1e-3
-                loss_observer: null
                 learning_rate: 1e-3
                 loading_workers: 1
+                metrics_collector: null
             report_generator:
                 number_of_tests: 10
                 buckets:
