@@ -3,6 +3,33 @@
 ###############
 
 ************
+ MRL v0.4.0
+************
+
+-  Added configurable training metrics collection for AlphaZero
+   training, including the built-in YamlMetricsCollector and support for
+   custom collectors.
+
+-  Added policy entropy, policy loss, value loss, total loss, and batch
+   metadata to the metrics emitted by the model trainer.
+
+-  Added the ``pucb_increase`` MCTS configuration parameter, allowing
+   the PUCT exploration weight to grow with parent node visits.
+
+-  Cached MCTS node priors to avoid repeated oracle probability queries
+   for the same state node.
+
+-  Improved HDF5 experience collection so observations, probabilities,
+   and payoffs can use arbitrary trailing shapes, with validation when
+   appending incompatible data.
+
+-  Improved random seeding for HDF5 and shared-process experience
+   collectors.
+
+-  Reworked Docker environments to use micromamba environment files and
+   updated the project dependency versions.
+
+************
  MRL v0.3.0
 ************
 

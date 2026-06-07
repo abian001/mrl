@@ -145,6 +145,7 @@ individual sections are described below.</p>
 <span class="w">    </span><span class="nt">mcts</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">        </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">pucb_increase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">        </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">        </span><span class="nt">dirichlet_alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
 <span class="w">        </span><span class="nt">dirichlet_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
@@ -158,6 +159,9 @@ individual sections are described below.</p>
 <span class="w">    </span><span class="nt">early_stop_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
 <span class="w">    </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
 <span class="w">    </span><span class="nt">loading_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">metrics_collector</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YamlMetricsCollector</span>
+<span class="w">        </span><span class="nt">file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">training_metrics.yaml</span>
 <span class="nt">report_generator</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">number_of_tests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="w">    </span><span class="nt">buckets</span><span class="p">:</span>
@@ -257,6 +261,7 @@ selection.</p>
 <span class="w">    </span><span class="nt">mcts</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">        </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="nt">pucb_increase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">        </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">        </span><span class="nt">dirichlet_alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
 <span class="w">        </span><span class="nt">dirichlet_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
@@ -296,6 +301,10 @@ details about the <code class="docutils literal notranslate"><span class="pre">t
 <span class="w">    </span><span class="nt">early_stop_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
 <span class="w">    </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
 <span class="w">    </span><span class="nt">loading_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">metrics_collector</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YamlMetricsCollector</span>
+<span class="w">        </span><span class="nt">file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">training_metrics.yaml</span>
+<span class="w">        </span><span class="nt">sample_batch_period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
 </pre></div>
 </div>
 <p>This section defines the neural network training parameters.</p>
@@ -309,7 +318,44 @@ loss falls below this value.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">learning_rate</span></code>: learning rate used by the optimizer.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">loading_workers</span></code>: number of worker threads used to prepare
 training data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metrics_collector</span></code>: optional collector used to persist training
+metrics for each training batch.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">file_path</span></code>: Used by the <code class="docutils literal notranslate"><span class="pre">YAMLMetricsCollector</span></code>. Specifies the
+path to the file that stores the collected metrics. If a relative
+path is provided, it is interpreted relative to <code class="docutils literal notranslate"><span class="pre">workspace_path</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample_batch_period</span></code>: Used by the <code class="docutils literal notranslate"><span class="pre">YAMLMetricsCollector</span></code>. This
+parameter defines how many batches are processed between metric
+samples. If set to None, no intermediate batch-level samples are
+taken, and only the final metric at the end of each training epoch is
+recorded.</p></li>
 </ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">metrics_collector</span></code> uses the same object-configuration format as
+other runtime collaborators in the runner.</p>
+<p>Custom metrics collectors are also supported. A custom collector can be
+provided through <code class="docutils literal notranslate"><span class="pre">trainer.metrics_collector</span></code> like any other configured
+runtime object. It should implement the <code class="docutils literal notranslate"><span class="pre">MetricsCollector</span></code> protocol,
+meaning it must provide a <code class="docutils literal notranslate"><span class="pre">collect(metrics,</span> <span class="pre">is_last_batch_in_epoch)</span></code>
+method compatible with the <code class="docutils literal notranslate"><span class="pre">TrainingMetrics</span></code> payload emitted by the
+trainer.</p>
+<p>The built-in collector <code class="docutils literal notranslate"><span class="pre">YamlMetricsCollector</span></code> appends one YAML record
+per training batch to the configured file. Relative paths are resolved
+against <code class="docutils literal notranslate"><span class="pre">workspace_path</span></code>.</p>
+<p>The emitted records include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha_zero_epoch</span></code>: the index of the outer AlphaZero training cycle
+for that training run;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">training_epoch</span></code>: the index of the neural-network optimization pass
+within that AlphaZero cycle;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch</span></code>: the batch index within that training epoch;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code>: the number of samples in that batch;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">policy_loss</span></code>: instantaneous policy loss for that batch;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value_loss</span></code>: instantaneous value loss for that batch;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_loss</span></code>: sum of policy loss and value loss for that batch;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">policy_entropy</span></code>: entropy of the predicted policy distribution for
+that batch.</p></li>
+</ul>
+<p>If <code class="docutils literal notranslate"><span class="pre">metrics_collector</span></code> is omitted or configured as
+<code class="docutils literal notranslate"><span class="pre">NullMetricsCollector</span></code>, no training metrics are persisted.</p>
 </section>
 <section id="report-generator">
 <h2>Report generator<a class="headerlink" href="#report-generator" title="Link to this heading"></a></h2>
@@ -402,6 +448,8 @@ also written to this directory.</p>
 <li><p>the persisted evaluation ratings for those checkpoints at
 <code class="docutils literal notranslate"><span class="pre">&lt;oracle_file_path&gt;_scores.yaml</span></code>.</p></li>
 </ul>
+<p>If a training metrics collector is configured with a relative
+<code class="docutils literal notranslate"><span class="pre">file_path</span></code>, its output is also stored under <code class="docutils literal notranslate"><span class="pre">workspace_path</span></code>.</p>
 </section>
 <section id="alpha-zero-evaluation">
 <span id="id1"></span><h2>Evaluation<a class="headerlink" href="#alpha-zero-evaluation" title="Link to this heading"></a></h2>

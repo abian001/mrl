@@ -10,24 +10,24 @@ You need a Python environment with the following dependencies:
 
 .. code:: bash
 
-   - python 3.13.11
-   - pytorch 2.8.0
+   - python 3.13.13
+   - pytorch 2.10.0
    - pyyaml 6.0.3
-   - h5py 3.15.1
-   - pydantic 2.12.4
+   - h5py 3.16.0
+   - pydantic 2.13.4
    - trueskill 0.4.5
    - make 4.4.1
-   - graphviz 2.42.4
-   - pylint 4.0.4
-   - mypy 1.71.1
-   - pyright 1.1.408
-   - pytest 9.0.2
+   - graphviz 14.1.2
+   - pylint 4.0.5
+   - mypy 1.20.2
+   - pyright 1.1.409
+   - pytest 9.0.3
    - pytest-asyncio 1.3.0
-   - sphinx 9.1.0
+   - sphinx 8.2.3
    - sphinx_rtd_theme 3.1.0
    - rstfmt 0.0.14
    - gprof2dot 2025.4.14
-   - types-PyYAML 6.0.12.20250915
+   - types-PyYAML 6.0.12.20260510
 
 You can use the Dockerfile to create a Docker image.
 

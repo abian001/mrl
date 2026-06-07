@@ -55,6 +55,7 @@
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="limitations.html">Limitations</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Release notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mrl-v0-4-0">MRL v0.4.0</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mrl-v0-3-0">MRL v0.3.0</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mrl-v0-2-0">MRL v0.2.0</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mrl-v0-1-0">MRL v0.1.0</a></li>
@@ -89,6 +90,27 @@
              
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading"></a></h1>
+<section id="mrl-v0-4-0">
+<h2>MRL v0.4.0<a class="headerlink" href="#mrl-v0-4-0" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Added configurable training metrics collection for AlphaZero
+training, including the built-in YamlMetricsCollector and support for
+custom collectors.</p></li>
+<li><p>Added policy entropy, policy loss, value loss, total loss, and batch
+metadata to the metrics emitted by the model trainer.</p></li>
+<li><p>Added the <code class="docutils literal notranslate"><span class="pre">pucb_increase</span></code> MCTS configuration parameter, allowing
+the PUCT exploration weight to grow with parent node visits.</p></li>
+<li><p>Cached MCTS node priors to avoid repeated oracle probability queries
+for the same state node.</p></li>
+<li><p>Improved HDF5 experience collection so observations, probabilities,
+and payoffs can use arbitrary trailing shapes, with validation when
+appending incompatible data.</p></li>
+<li><p>Improved random seeding for HDF5 and shared-process experience
+collectors.</p></li>
+<li><p>Reworked Docker environments to use micromamba environment files and
+updated the project dependency versions.</p></li>
+</ul>
+</section>
 <section id="mrl-v0-3-0">
 <h2>MRL v0.3.0<a class="headerlink" href="#mrl-v0-3-0" title="Link to this heading"></a></h2>
 <ul class="simple">

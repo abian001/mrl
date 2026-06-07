@@ -220,6 +220,7 @@ distribution.</p>
 <span class="nt">mcts</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 <span class="w">    </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">    </span><span class="nt">pucb_increase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
 <span class="w">    </span><span class="nt">dirichlet_alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">dirichlet_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
@@ -242,8 +243,12 @@ been visited most often during the search.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">number_of_simulations</span></code>: number of simulations performed for each
 decision.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pucb_constant</span></code>: exploration weight. Higher values encourage
-exploration of less-visited actions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pucb_constant</span></code>: baseline exploration weight. Higher values
+encourage exploration of less-visited actions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pucb_increase</span></code>: additional exploration growth factor. The
+effective exploration weight is <code class="docutils literal notranslate"><span class="pre">pucb_constant</span> <span class="pre">+</span> <span class="pre">log(pucb_increase</span> <span class="pre">*</span>
+<span class="pre">(parent_visits</span> <span class="pre">+</span> <span class="pre">1)</span> <span class="pre">+</span> <span class="pre">1)</span></code>. A value of <code class="docutils literal notranslate"><span class="pre">0.0</span></code> keeps the standard
+fixed constant behavior.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code>: discount applied to rewards that occur in the
 game.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dirichlet_alpha</span></code>: concentration parameter used when sampling
@@ -263,6 +268,7 @@ mechanism.</p></li>
 <span class="nt">mcts</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 <span class="w">    </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">    </span><span class="nt">pucb_increase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
 <span class="w">    </span><span class="nt">dirichlet_alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
 <span class="w">    </span><span class="nt">dirichlet_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
@@ -293,6 +299,7 @@ selects the most visited action.</p></li>
 <span class="nt">mcts</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">number_of_simulations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 <span class="w">    </span><span class="nt">pucb_constant</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">    </span><span class="nt">pucb_increase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">discount_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
 </pre></div>
 </div>

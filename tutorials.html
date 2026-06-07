@@ -103,11 +103,11 @@
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>You need a Python environment with the following dependencies:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-<span class="w"> </span>python<span class="w"> </span><span class="m">3</span>.13.11
--<span class="w"> </span>pytorch<span class="w"> </span><span class="m">2</span>.8.0
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-<span class="w"> </span>python<span class="w"> </span><span class="m">3</span>.13.13
+-<span class="w"> </span>pytorch<span class="w"> </span><span class="m">2</span>.10.0
 -<span class="w"> </span>pyyaml<span class="w"> </span><span class="m">6</span>.0.3
--<span class="w"> </span>h5py<span class="w"> </span><span class="m">3</span>.15.1
--<span class="w"> </span>pydantic<span class="w"> </span><span class="m">2</span>.12.4
+-<span class="w"> </span>h5py<span class="w"> </span><span class="m">3</span>.16.0
+-<span class="w"> </span>pydantic<span class="w"> </span><span class="m">2</span>.13.4
 -<span class="w"> </span>trueskill<span class="w"> </span><span class="m">0</span>.4.5
 </pre></div>
 </div>
@@ -364,19 +364,19 @@ trained enough for each batch of training examples)</p></li>
 <p>After applying the changes described above, the following results were
 obtained in my tests:</p>
 <ul class="simple">
-<li><p>InMemory strategy: After 16 minutes of training, the model achieved</p>
+<li><p>InMemory strategy: After 18 minutes of training, the model achieved</p>
 <ul>
-<li><p>an average payoff of 0.92, with a 87% win rate and a 5% loss rate
+<li><p>an average payoff of 0.93, with a 88% win rate and a 3% loss rate
 against the random policy;</p></li>
-<li><p>an average payoff of 0.36, with a 72% draw rate and a 28% loss
+<li><p>an average payoff of 0.39, with a 79% draw rate and a 21% loss
 rate against the optimal AlphaBetaPolicy.</p></li>
 </ul>
 </li>
-<li><p>HDF5 strategy: After 8 minutes of training, the model achieved</p>
+<li><p>HDF5 strategy: After 17 minutes of training, the model achieved</p>
 <ul>
-<li><p>an average payoff of 0.85, with a 81% win rate and a 11% loss rate
+<li><p>an average payoff of 0.84, with a 80% win rate and a 11% loss rate
 against the random policy;</p></li>
-<li><p>an average payoff of 0.31, with a 62% draw rate and a 38% loss
+<li><p>an average payoff of 0.25, with a 51% draw rate and a 49% loss
 rate against the optimal AlphaBetaPolicy.</p></li>
 </ul>
 </li>
